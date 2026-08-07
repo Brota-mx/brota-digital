@@ -61,9 +61,9 @@ detiene y se lo dice a Jesús.
 
 ## Estado actual
 
-Pasos 1 a 7 del orden de construcción completados: scaffold + tokens · logo · layout base
-y SEO técnico · contenido tipado · sistema de componentes · el trazo que brota · la Home.
-Sigue el paso 8 (`/servicios` + FAQ).
+Pasos 1 a 8 del orden de construcción completados: scaffold + tokens · logo · layout base
+y SEO técnico · contenido tipado · sistema de componentes · el trazo que brota · la Home ·
+`/servicios` + FAQ. Sigue el paso 9 (`/casos` + las 3 páginas de caso).
 
 `components/sections/` tiene las seis secciones de la home (Hero, Escalera, Casos, Proceso,
 CTA, Marquee) y `components/layout/TalloSVG.tsx` el efecto firma, que ahora vive en la home
@@ -95,9 +95,22 @@ sustituyó `IntersectionObserver` por un stub, y eso apaga también el prefetch 
 contraste AA de `--coral-ink`. El grano se reconstruyó para que solo aclare; el porqué,
 con los números, está en `components/ui/Grano.tsx`.
 
-La navegación apunta a `/servicios`, `/casos` y `/contacto`, que dan 404 hasta los pasos
-8-10, y ahora también los enlazan la home y las tarjetas de caso (`/casos/[slug]`). Es el
-orden del blueprint, no un descuido: se prefirió eso a sembrar placeholders.
+La navegación apunta a `/servicios` —que ya existe—, `/casos` y `/contacto`, que dan 404
+hasta los pasos 9-10, y también los enlazan la home y las tarjetas de caso
+(`/casos/[slug]`). Es el orden del blueprint, no un descuido: se prefirió eso a sembrar
+placeholders.
+
+`/servicios` **no lleva el tallo y no anima nada**. Medido en la misma corrida: la home
+gasta 7 457 ms de hilo principal por barrido de scroll a 375px con la CPU 6× y `/servicios`
+4 846, con el trabajo de estilo y layout cayendo de 403/359 ms a 36/46. El trazo es la
+firma de la home, no un adorno que se repite: es el efecto más caro del sitio.
+
+Su tabla de precios es una `<table>` de verdad con `<caption>` porque es la candidata a
+fragmento destacado de «cuánto cuesta una página web en México» (blueprint §6). Va con
+**dos columnas y no tres** para que quepa a 375px sin scroll horizontal — sin scroll no
+hace falta convertirla en región tabulable, que sería una parada de teclado sin control al
+que llevar. El FAQ va **abierto, no en acordeón**: es el sustituto del blog y esconder el
+texto por el que la página existe cuesta más de lo que ahorra.
 
 ⚠️ **`--coral-ink` no sirve sobre `--cream-2`** (4.13:1, reprueba) ni sobre `--black`
 (3.68:1). Solo sobre `--cream`, y con blanco encima. En superficies elevadas o invertidas,

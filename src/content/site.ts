@@ -67,5 +67,5 @@ export const site = {
    * Rutas que ya existen y se pueden indexar. Cada paso del blueprint agrega
    * la suya al aterrizar; el paso 12 (cierre SEO) verifica que estén todas.
    */
-  sitemap: ["/"],
+  sitemap: ["/", "/servicios"],
 } as const;
