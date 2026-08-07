@@ -1,0 +1,85 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   Brota Digital — design tokens
+   --------------------------------------------------------------------------
+   ÚNICA fuente de hex del proyecto (regla 1 del CLAUDE.md). Ningún componente
+   escribe un color literal: consume estas variables o las utilidades de
+   Tailwind que las mapean más abajo.
+
+   Procedencia: todos los valores salen del CSS real de brotadigital.mx,
+   leídos en vivo del DOM durante la ingesta. Ninguno fue inventado ni
+   derivado de una descripción.
+
+   Los ratios están calculados con la fórmula de luminancia relativa de
+   WCAG 2.1 contra --cream (#FDFAF5), que es el lienzo de todo el sitio.
+   ========================================================================== */
+
+:root {
+  /* Un solo tema. Evita que el navegador reinterprete controles nativos
+     (selects, inputs del formulario) cuando el SO está en modo oscuro. */
+  color-scheme: light;
+
+  /* — Superficies ------------------------------------------------------- */
+  --cream: #fdfaf5; /* lienzo base */
+  --cream-2: #f5efe4; /* superficie elevada */
+  --white: #ffffff; /* texto sobre relleno oscuro o coral-ink */
+
+  /* — Texto ------------------------------------------------------------- */
+  --black: #1a1a1a; /* texto principal · 16.7:1 ✅ AAA · también fondo de secciones invertidas */
+  --gray: #6b6b6b; /* texto secundario ·  5.1:1 ✅ AA  */
+
+  /* — Acento cálido ----------------------------------------------------- */
+
+  /* ❌ PROHIBIDO COMO TEXTO — 3.3:1, reprueba AA a cualquier tamaño.
+     Es color de superficie, relleno decorativo, borde y trazo (el tallo
+     del efecto #1 vive aquí). Con texto blanco encima da 3.5:1: tampoco.
+     Si necesitas coral y hay letras de por medio, usa --coral-ink. */
+  --coral: #e85d3a;
+
+  /* ✅ El ÚNICO coral que puede tocar texto.
+        4.5:1 sobre crema      → texto, enlaces  ✅ AA
+        4.7:1 con blanco encima → relleno de botón primario ✅ AA
+     Mismo valor que el --coral-d del sitio anterior; renombrado para
+     hablar el vocabulario -ink que ya usan Pagaza y Grupo Galarza.
+     El margen sobre el mínimo de 4.5 es de centésimas: no oscurecer el
+     crema ni aclarar este token sin recalcular. */
+  --coral-ink: #c94828;
+
+  /* ❌ PROHIBIDO COMO TEXTO, sin excepción — 1.5:1. Decorativo y nada más. */
+  --gold: #f5c97a;
+}
+
+/* --------------------------------------------------------------------------
+   Puente a Tailwind.
+   `--color-*: initial` borra la paleta por defecto de Tailwind: sin esto,
+   un `text-gray-500` o un `bg-slate-100` entra al sitio sin que nadie lo
+   note y ya no hay una sola fuente de color. Solo existe lo de abajo.
+   -------------------------------------------------------------------------- */
+@theme inline {
+  --color-*: initial;
+
+  --color-cream: var(--cream);
+  --color-cream-2: var(--cream-2);
+  --color-white: var(--white);
+  --color-black: var(--black);
+  --color-gray: var(--gray);
+  --color-coral: var(--coral);
+  --color-coral-ink: var(--coral-ink);
+  --color-gold: var(--gold);
+
+  --color-transparent: transparent;
+  --color-current: currentColor;
+}
+
+/* --------------------------------------------------------------------------
+   Base.
+   Las fuentes reales (Fraunces display + DM Sans cuerpo, self-hosted con
+   next/font) entran en el paso 3 del blueprint. Hasta entonces, stack del
+   sistema: cero requests a Google Fonts, ni ahora ni después.
+   -------------------------------------------------------------------------- */
+body {
+  background: var(--cream);
+  color: var(--black);
+  font-family: ui-sans-serif, system-ui, sans-serif;
+}
