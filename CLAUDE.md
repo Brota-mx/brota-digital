@@ -51,13 +51,13 @@ Formulario: RHF + Zod + honeypot + Upstash rate-limit + Turnstile + Resend (fail
 
 ## Bloqueantes — construir sí, publicar no
 
-Hay 5 pendientes legales abiertos (blueprint §11 y `Plan - Brota Digital` en el vault):
-autorización escrita de Patricia García y Grupo Galarza, aviso de privacidad conforme a
-la LFPDPPP reformada, verificar cuál es la autoridad garante vigente (**el INAI desapareció
-con la reforma de 2025** — citarlo sería un error fechable), declarar la transferencia
-internacional a Resend, y respaldar cada "desde $X" con un paquete real (Art. 7 LFPC).
+El sitio tiene requisitos legales y de contenido pendientes antes de publicarse
+(blueprint §11). **La lista está en `Plan - Brota Digital`, en el vault** — no aquí:
+este repositorio es público y esos pendientes son internos.
 
-**Hasta que se resuelvan: no se despliega a Vercel ni se apunta el dominio.**
+**Hasta que esa lista esté cerrada: no se despliega a Vercel ni se apunta el dominio.**
+Construir sí; publicar no. Si una sesión llega al paso 15 y la lista sigue abierta, se
+detiene y se lo dice a Jesús.
 
 ## Estado actual
 
