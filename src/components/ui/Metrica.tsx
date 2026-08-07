@@ -1,16 +1,20 @@
+import { Contador } from "@/components/ui/Contador";
+
 /**
  * Métrica de caso (blueprint §4, efecto #4): número descomunal en Fraunces con
  * una regla capilar creciendo debajo.
  *
- * Aquí queda en su estado final y estático. El contador ascendente llega en el
- * paso 7, y la regla ya está dibujada con el ancho de destino a propósito: el
- * blueprint manda que `prefers-reduced-motion` apague el movimiento **sin
- * perder contenido**, así que el estado sin animación tiene que ser este mismo,
- * no un hueco esperando JavaScript.
+ * El estado que ves escrito aquí ES el estado final: número completo y regla
+ * con su ancho de destino. Las dos piezas de movimiento se montan encima y
+ * cada una sabe volver sola a este estado —`Contador` si no hay JavaScript o
+ * el usuario pide menos movimiento, `.metrica-regla` si el navegador no tiene
+ * líneas de tiempo de scroll—. Es la guarda del blueprint («apagar el
+ * movimiento sin perder contenido») construida como un solo estado que
+ * mantener, no como dos.
  *
  * `font-display` es explícito porque el valor es un `<p>`, y Fraunces solo está
  * puesta por defecto en h1-h3. `tabular-nums` evita que el número baile de
- * ancho cuando el contador del paso 7 lo recorra.
+ * ancho mientras el contador lo recorre.
  *
  * El texto sale de `content/casos.ts` (`metrica.valor` / `metrica.etiqueta`).
  */
@@ -30,9 +34,11 @@ export function Metrica({
           invertida ? "text-cream-2" : "text-black"
         }`}
       >
-        {valor}
+        <Contador valor={valor} />
       </p>
-      <div className="mt-5 h-px w-14 bg-coral" />
+      {/* La regla crece con `animation-timeline: view()` — cero JavaScript, y
+          donde no hay soporte se queda con su ancho final. Ver `globals.css`. */}
+      <div className="metrica-regla mt-5 h-px w-14 origin-left bg-coral" />
       <p
         className={`mt-5 max-w-[24ch] text-sm ${
           invertida ? "text-cream-2" : "text-gray"

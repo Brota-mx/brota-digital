@@ -61,26 +61,44 @@ detiene y se lo dice a Jesús.
 
 ## Estado actual
 
-Pasos 1 a 6 del orden de construcción completados: scaffold + tokens · logo · layout base
-y SEO técnico · contenido tipado · sistema de componentes · el trazo que brota. Sigue el
-paso 7 (la Home).
+Pasos 1 a 7 del orden de construcción completados: scaffold + tokens · logo · layout base
+y SEO técnico · contenido tipado · sistema de componentes · el trazo que brota · la Home.
+Sigue el paso 8 (`/servicios` + FAQ).
 
-`components/ui/` tiene Button (3 niveles), Card, Metrica, Eyebrow y Grano, y
-`components/layout/TalloSVG.tsx` el efecto firma. `/sistema` es el banco de pruebas contra
-el que se auditan: `noindex`, fuera del sitemap, y se borra cuando las secciones reales lo
-dejen sin uso — el paso 7 muda el tallo ahí y la deja sin trabajo.
+`components/sections/` tiene las seis secciones de la home (Hero, Escalera, Casos, Proceso,
+CTA, Marquee) y `components/layout/TalloSVG.tsx` el efecto firma, que ahora vive en la home
+enhebrando las secciones. `/sistema` **se borró** en el paso 7: era el banco de pruebas de
+los componentes y las secciones reales lo dejaron sin trabajo.
 
-⚠️ **El presupuesto de movimiento es más chico de lo que sugiere el blueprint.**
-`animation-timeline: scroll()` **no** saca el efecto del hilo principal cuando la propiedad
-animada no es componible, y `stroke-dashoffset` no lo es. Medido a 375px con la CPU frenada
-6×: el tallo presente sin animar no cuesta nada, animado sube la mediana de fotograma de
-12.5 a 16.7 ms. Los números y su método están en `components/layout/TalloSVG.tsx`. Antes de
-sumar efectos en una misma vista, medir — no dar por hecho que la línea de tiempo nativa
-sale gratis.
+⚠️ **El presupuesto de movimiento es más chico de lo que sugiere el blueprint, y el caro
+es el tallo.** `animation-timeline: scroll()` **no** saca el efecto del hilo principal
+cuando la propiedad animada no es componible, y `stroke-dashoffset` no lo es. Medido a
+375px con la CPU frenada 6×, en tiempo de hilo principal por barrido completo de scroll:
+
+| Condición | Tarea | Estilo | Layout |
+|---|---|---|---|
+| Sin movimiento | 2 295 ms | 0 | 0 |
+| Solo el tallo | 5 653 ms | 419 | 362 |
+| Todo (tallo + home) | 6 648 ms | 907 | 338 |
+
+El tallo cuesta ~3.4 s del barrido; **todo lo que agregó el paso 7 junto cuesta ~1.0 s**,
+un tercio de eso, porque solo anima `transform` y `opacity`. Cero fotogramas por encima de
+32 ms en cualquier condición. Antes de sumar efectos, medir — y medir **tiempo de hilo**,
+no medianas de intervalo de `requestAnimationFrame`: esas se cuantizan a múltiplos de vsync
+y hacen parecer que media décima de milisegundo son cuatro.
+
+⚠️ **Y ojo con lo que se apaga para aislar.** El primer intento de aislar el contador
+sustituyó `IntersectionObserver` por un stub, y eso apaga también el prefetch de
+`next/link`, que usa el mismo observador: lo medido no era el contador.
 
 ⚠️ **El grano de papel no es el 3% del blueprint.** Se midió y ese valor tumba el
 contraste AA de `--coral-ink`. El grano se reconstruyó para que solo aclare; el porqué,
 con los números, está en `components/ui/Grano.tsx`.
 
 La navegación apunta a `/servicios`, `/casos` y `/contacto`, que dan 404 hasta los pasos
-8-10. Es el orden del blueprint, no un descuido: se prefirió eso a sembrar placeholders.
+8-10, y ahora también los enlazan la home y las tarjetas de caso (`/casos/[slug]`). Es el
+orden del blueprint, no un descuido: se prefirió eso a sembrar placeholders.
+
+⚠️ **`--coral-ink` no sirve sobre `--cream-2`** (4.13:1, reprueba) ni sobre `--black`
+(3.68:1). Solo sobre `--cream`, y con blanco encima. En superficies elevadas o invertidas,
+el acento que toca letra no existe: la jerarquía se hace con tamaño.
