@@ -41,8 +41,9 @@
  * construcción no puede bajar de ahí— y la media sube a 4.599.
  *
  * Se ve menos que el 3% original. Es la intensidad que el presupuesto de
- * contraste permite, y está anotado en el vault como decisión de Jesús, no
- * como detalle de implementación.
+ * contraste permite. Subirla obligaría a cambiar `--coral-ink`, que es
+ * identidad de marca heredada: no es un ajuste de implementación y no se hace
+ * sin decisión de marca.
  */
 export function Grano() {
   return (

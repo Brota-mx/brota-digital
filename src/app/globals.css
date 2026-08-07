@@ -130,11 +130,27 @@
 /* --------------------------------------------------------------------------
    Movimiento.
 
-   El único efecto animado del sitio hasta ahora es el tallo (paso 6). Vive
-   aquí y no en el componente porque las tres ramas de abajo son CSS puro, y
-   la primera —la línea de tiempo de scroll— es justamente la que corre fuera
-   del hilo principal. Va en `@layer components` para que cualquier utilidad de
-   Tailwind en el JSX le siga ganando.
+   Todo el movimiento del sitio vive aquí y no en los componentes, por tres
+   razones que se ganaron a pulso:
+
+   1. Es CSS puro, así que funciona sin hidratar y sin JavaScript.
+   2. El ORDEN entre las reglas es lo que hace funcionar la guarda: el bloque
+      de `prefers-reduced-motion` va al final, después de los `@supports`, para
+      ganar por cascada. Repartido en cinco componentes, ese orden no se puede
+      garantizar.
+   3. Está todo junto: se puede contar cuántas cosas se mueven en una vista,
+      que es literalmente la regla del blueprint §4 («máximo 1-2 elementos
+      animados por vista»).
+
+   Va en `@layer components` para que cualquier utilidad de Tailwind en el JSX
+   le siga ganando (la lección del paso 3).
+
+   ⚠️ PRESUPUESTO. Medido en el paso 6 a 375px con la CPU frenada 6×: el tallo
+   animado sube la mediana de fotograma de 12.5 a 16.7 ms. `animation-timeline:
+   scroll()` NO saca el efecto del hilo principal cuando la propiedad no es
+   componible, y `stroke-dashoffset` no lo es. Por eso todo lo que se agregó en
+   el paso 7 anima únicamente `transform` y `opacity`, que sí componen, y todo
+   salvo el marquee es de un solo disparo.
    -------------------------------------------------------------------------- */
 @keyframes brotar {
   from {
@@ -142,6 +158,54 @@
   }
   to {
     stroke-dashoffset: 0;
+  }
+}
+
+/* El brote del hero: el mismo trazo de 1px, creciendo desde el suelo. */
+@keyframes brotar-tallo {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+/* Revelado desde el suelo: la frase emerge detrás de la máscara del
+   envoltorio (`overflow-hidden`), no aparece de la nada. */
+@keyframes emerger {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes aparecer {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* La regla capilar que crece bajo la métrica. */
+@keyframes crecer-regla {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* Media pista: en el 50% la tira se ve idéntica al inicio, así que el bucle
+   no tiene costura. */
+@keyframes desfilar {
+  to {
+    transform: translateX(-50%);
   }
 }
 
@@ -167,6 +231,73 @@
     @media (prefers-reduced-motion: reduce) {
       animation: none;
       stroke-dashoffset: 0;
+    }
+  }
+
+  /* ── Hero: una sola entrada, de un solo disparo (blueprint §4, efecto #2) ──
+     Cuatro piezas coreografiadas, no cuatro efectos independientes: el brote
+     crece desde el suelo y las frases van emergiendo detrás de él. Al segundo
+     ya no hay nada moviéndose en la vista.
+
+     `both` conserva el primer fotograma durante el retraso: sin él, el
+     titular parpadearía visible antes de esconderse. */
+  .hero-brote {
+    transform-origin: bottom;
+    animation: brotar-tallo 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .hero-linea {
+    /* El retraso lo pone el JSX por índice (`--retraso`), no un `nth-child`:
+       si el titular pasa de dos frases a tres, no hay CSS que tocar. */
+    animation: emerger 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: var(--retraso, 0ms);
+  }
+
+  .hero-entrada {
+    animation: aparecer 600ms ease-out 620ms both;
+  }
+
+  /* ── Métrica: la regla que crece bajo el número (efecto #4) ──────────────
+     `view()` es la línea de tiempo del propio elemento entrando en pantalla:
+     cero JavaScript, cero observadores. Donde no hay soporte —Firefox hoy— se
+     queda con su ancho final, que es el estado que ya renderiza el servidor. */
+  .metrica-regla {
+    @supports (animation-timeline: view()) {
+      animation: crecer-regla linear both;
+      animation-timeline: view();
+      animation-range: entry 25% cover 40%;
+    }
+  }
+
+  /* ── Marquee (efecto #7) ────────────────────────────────────────────────
+     El único movimiento continuo del sitio, y vive solo en su propia vista.
+     `linear` es deliberado: ver el componente. */
+  .marquee-pista {
+    animation: desfilar 55s linear infinite;
+  }
+
+  /* La pausa que pide WCAG 2.2.2, con ratón y con teclado. */
+  .marquee:hover .marquee-pista,
+  .marquee:focus-within .marquee-pista {
+    animation-play-state: paused;
+  }
+
+  /* ── La guarda, para todo lo del paso 7 ─────────────────────────────────
+     Va al final del layer a propósito: gana por orden de cascada sobre los
+     `@supports` de arriba. Apaga el movimiento y deja cada pieza en su estado
+     FINAL —nunca en el inicial—, que es lo que significa «sin perder
+     contenido»: titular a la vista, brote crecido, regla con su ancho, tira
+     legible. Los contadores hacen lo suyo en `Contador.tsx`, porque su estado
+     final es texto y el CSS no lo puede escribir. */
+  @media (prefers-reduced-motion: reduce) {
+    .hero-brote,
+    .hero-linea,
+    .hero-entrada,
+    .metrica-regla,
+    .marquee-pista {
+      animation: none;
+      transform: none;
+      opacity: 1;
     }
   }
 }
