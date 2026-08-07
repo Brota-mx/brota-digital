@@ -1,0 +1,34 @@
+== móvil 375 ==
+  contraste 375: 114 nodos · 0 fallos · 0 fuera de la imagen
+  tactiles <44: []
+  desborde: {"scroll":375,"client":375}
+  contraste 375 CONTROL: 115 nodos · 1 fallos · 0 fuera de la imagen
+    ❌ {"t":"CONTROL coral 14px sobre crema","px":14,"peso":400,"color":"rgb(232, 93, 58)","fondo":"rgb(254,251,248)","ratio":3.362,"min":4.5}
+  ➜ control CAZADO ✅
+== 320 == desborde {"scroll":320,"client":320} · tactiles<44 []
+== 768 == desborde {"scroll":768,"client":768} · tactiles<44 []
+== 1440 == desborde {"scroll":1440,"client":1440} · tactiles<44 []
+  contraste 1440: 114 nodos · 0 fallos · 0 fuera de la imagen
+== reduce 375 == elementos con animación en <main>: 0
+== sin JS == caracteres de texto en <main>: 6610 · tabla presente: true · FAQ presente: true
+== foco == {"tag":"A","t":"Escribir por WhatsApp","outline":"rgb(201, 72, 40) 2px"}
+== JSON-LD == bloques: 2 · FAQPage: true · preguntas: 8
+  preguntas visibles: 8 · coinciden con el marcado: true
+  toda respuesta con texto: true
+  sitemap incluye /servicios: true
+== firefox 375 == desborde {"scroll":375,"client":375} · tactiles<44 []
+== presupuesto de movimiento ==
+Barrido completo de scroll a 375px, CPU frenada 6x, tiempo de hilo principal por
+categoria (Performance.getMetrics por CDP). Tres vueltas por pagina, orden alternado,
+mediana. Los valores absolutos NO son comparables con los del paso 7 (otro navegador,
+otro numero de pasos): lo comparable es /servicios contra / dentro de esta misma corrida.
+
+  /            tarea 7457 ms · script 1856 · estilo 403 · layout 359
+  /servicios   tarea 4846 ms · script 1800 · estilo  36 · layout  46
+
+/servicios gasta ~2.6 s menos de hilo principal que la home, y su trabajo de estilo y
+layout durante el scroll cae ~10x. Es la huella de que aqui no se anima nada: la home
+paga el tallo (stroke-dashoffset, que no compone) y esta pagina no lo lleva.
+
+Control del instrumento: reproduce en una corrida independiente el hallazgo del paso 7
+—que el caro es el tallo— separando las dos paginas por categoria, no solo en el total.

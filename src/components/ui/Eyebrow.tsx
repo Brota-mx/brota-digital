@@ -17,7 +17,7 @@ export function Eyebrow({
   className = "",
   children,
 }: {
-  as?: "p" | "h2" | "span";
+  as?: "p" | "h2" | "h3" | "span";
   id?: string;
   className?: string;
   children: ReactNode;
