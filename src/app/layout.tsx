@@ -3,6 +3,7 @@ import { DM_Sans, Fraunces } from "next/font/google";
 
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
+import { Grano } from "@/components/ui/Grano";
 import { site } from "@/content/site";
 import "./globals.css";
 
@@ -79,6 +80,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${fraunces.variable} ${dmSans.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">
+        {/* Textura del sitio entero, una sola vez. Va antes del Header por
+            orden de pintado, no porque se vea arriba: es una capa fija. */}
+        <Grano />
         <Header />
         {children}
         <Footer />

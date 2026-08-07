@@ -61,8 +61,17 @@ detiene y se lo dice a Jesús.
 
 ## Estado actual
 
-Pasos 1 a 4 del orden de construcción completados: scaffold + tokens · logo · layout base
-y SEO técnico · contenido tipado. Sigue el paso 5 (sistema de componentes).
+Pasos 1 a 5 del orden de construcción completados: scaffold + tokens · logo · layout base
+y SEO técnico · contenido tipado · sistema de componentes. Sigue el paso 6 (el trazo que
+brota).
+
+`components/ui/` tiene Button (3 niveles), Card, Metrica, Eyebrow y Grano. `/sistema` es
+el banco de pruebas contra el que se auditan: `noindex`, fuera del sitemap, y se borra
+cuando las secciones reales lo dejen sin uso.
+
+⚠️ **El grano de papel no es el 3% del blueprint.** Se midió y ese valor tumba el
+contraste AA de `--coral-ink`. El grano se reconstruyó para que solo aclare; el porqué,
+con los números, está en `components/ui/Grano.tsx`.
 
 La navegación apunta a `/servicios`, `/casos` y `/contacto`, que dan 404 hasta los pasos
 8-10. Es el orden del blueprint, no un descuido: se prefirió eso a sembrar placeholders.
