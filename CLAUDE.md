@@ -61,4 +61,8 @@ detiene y se lo dice a Jesús.
 
 ## Estado actual
 
-Paso 1 del orden de construcción (scaffold + tokens) — completado.
+Pasos 1 a 4 del orden de construcción completados: scaffold + tokens · logo · layout base
+y SEO técnico · contenido tipado. Sigue el paso 5 (sistema de componentes).
+
+La navegación apunta a `/servicios`, `/casos` y `/contacto`, que dan 404 hasta los pasos
+8-10. Es el orden del blueprint, no un descuido: se prefirió eso a sembrar placeholders.
