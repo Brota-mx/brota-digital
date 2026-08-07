@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { TalloSVG } from "@/components/layout/TalloSVG";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Eyebrow } from "@/components/ui/Eyebrow";
@@ -49,7 +50,13 @@ function Bloque({
 
 export default function Sistema() {
   return (
-    <main className="mx-auto flex w-full max-w-[1160px] flex-1 flex-col gap-20 px-6 py-20">
+    <main className="relative mx-auto flex w-full max-w-[1160px] flex-1 flex-col gap-20 px-6 py-20">
+      {/* El tallo del paso 6 se prueba aquí porque aquí hay scroll real y la
+          evidencia corresponde a código commiteado. Va en el canalón izquierdo
+          —el ancho del `px-6`—, nunca por detrás del texto. En el paso 7 pasa a
+          la home a enhebrar las secciones y la escalera, y esta página se borra. */}
+      <TalloSVG className="left-0" />
+
       <h1 className="text-[clamp(40px,9vw,88px)]">Sistema</h1>
 
       <Bloque rotulo="Button — primario · secundario · terciario">

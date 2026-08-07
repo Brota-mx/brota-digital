@@ -5,7 +5,7 @@ import { Eyebrow } from "@/components/ui/Eyebrow";
 import { site } from "@/content/site";
 
 // Sección invertida: fondo --black. Ahí --gray da 3.3:1 y reprueba AA, así que
-// TODO el texto del footer va en --cream-2 (15.2:1) y la jerarquía se hace con
+// **todo** el texto del footer va en --cream-2 (15.2:1) y la jerarquía se hace con
 // tamaño, no con color. Un tono atenuado obligaría a recalcular contraste cada
 // vez que alguien toque el footer.
 
