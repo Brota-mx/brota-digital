@@ -73,12 +73,9 @@ segmento muestra números.
 - **Decisión abierta:** el número de WhatsApp publicado es el personal de un socio y es
   temporal. Vive como constante única para poder sustituirlo en una línea.
 - **Decisión abierta:** fotos del equipo. El sitio funciona sin ellas.
-- **Restricción legal:** el sitio no se publica hasta resolver cinco pendientes
-  documentados en `BLUEPRINT.md` §11 — autorizaciones escritas de dos clientes, aviso de
-  privacidad conforme a la LFPDPPP reformada, verificación de cuál es la autoridad garante
-  vigente (el INAI desapareció con la reforma de 2025), declaración de la transferencia
-  internacional de datos, y respaldo de cada precio "desde $X" con un paquete real
-  disponible en esas condiciones (Art. 7 LFPC).
+- **Restricción legal:** el sitio no se publica hasta cerrar los requisitos previos de
+  `BLUEPRINT.md` §11. La lista operativa vive en las notas internas del proyecto, fuera de
+  este repositorio público.
 
 ## Brand Commitments
 
@@ -111,11 +108,12 @@ autorización escrita del cliente.
 
 **Ausencias que el trabajo futuro NO debe rellenar inventando:**
 
-- 🔴 **No existen testimonios.** El sitio anterior publicaba tres reseñas de cinco estrellas
-  con nombre, giro y ciudad que no correspondían a ningún cliente real; se detectaron y se
-  eliminaron del alcance. **Jamás se escriben testimonios, reseñas, calificaciones ni
-  clientes que no existan.** Prohibido también marcar `AggregateRating` o `Review` en
-  JSON-LD mientras no haya reseñas verificables reales.
+- 🔴 **No hay testimonios, y ninguno se inventa.** No existe todavía ni una reseña
+  atribuible a un cliente real. **Jamás se escriben testimonios, reseñas, calificaciones ni
+  clientes que no existan** — ni siquiera como texto de relleno "provisional", porque el
+  relleno se queda. Prohibido también marcar `AggregateRating` o `Review` en JSON-LD
+  mientras no haya reseñas verificables reales: Google detecta el marcado de reseñas falsas
+  y penaliza. Esta regla no se negocia y no tiene excepción de plazo.
 - No hay fotografías propias de ningún tipo. El sitio anterior no tiene una sola imagen.
 - El Instagram `@brotadigitaal` está vacío (0 publicaciones).
 - No hay número de clientes, años de experiencia ni volumen de proyectos que se pueda
@@ -127,7 +125,7 @@ autorización escrita del cliente.
    hace evidente que el visitante puede empezar donde está y crecer sin cambiar de
    proveedor.
 2. **Nada que no se pueda verificar.** Métricas de sitios reales sí; adjetivos sobre calidad
-   y prueba social fabricada no. Este sitio ya cargó una vez con testimonios inventados.
+   y prueba social fabricada no. Si un dato no se puede señalar en producción, no se publica.
 3. **El presupuesto se habla de frente.** El precio y el rango son parte del contenido, no
    información que se esconde hasta la llamada. Es lo que califica al lead y lo que la ley
    exige respaldar.

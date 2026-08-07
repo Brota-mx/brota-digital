@@ -421,36 +421,18 @@ NEXT_PUBLIC_SITE_URL=
 
 ---
 
-## 11. Tareas de Jesús (fuera del código)
+## 11. Requisitos previos a la publicación
 
-### 🔴 Bloquean el lanzamiento
+Este sitio **no se publica** hasta cerrar una lista de requisitos legales y de contenido:
+autorizaciones de terceros para publicar su caso, aviso de privacidad conforme a la LFPDPPP,
+confirmación de la autoridad garante vigente en materia de protección de datos, declaración
+de las transferencias de datos, y revisión de los textos comerciales.
 
-- [ ] **Autorización escrita** (basta un correo) de los dos clientes que se publican con nombre y logo. Sin esto, esas dos páginas no salen.
-- [ ] **Aviso de privacidad**: redactarlo con las secciones que exige la LFPDPPP — identidad del responsable, finalidades primarias y secundarias, datos recabados, mecanismo y plazos para derechos ARCO, opciones de limitación, medio de notificación de cambios, autoridad ante la que reclamar.
-- [ ] ⚠️ **Verificar con abogado el nombre de la autoridad garante vigente.** La reforma de 2025 trasladó las funciones de protección de datos a la Secretaría Anticorrupción y Buen Gobierno. **Citar "INAI" sería un error fechable** en un sitio que vende profesionalismo.
-- [ ] **Declarar en el aviso la transferencia internacional a Resend** (EE.UU.), aunque los datos no se persistan.
-- [ ] **Precios**: cada "desde $X" debe corresponder a un paquete real y disponible en esas condiciones (Art. 7 LFPC). Aclarar en una línea qué incluye y qué no.
+📁 **La lista operativa vive fuera de este repositorio**, en las notas internas del proyecto
+(`Plan - Brota Digital`). No se versiona a propósito: contiene condiciones comerciales,
+pendientes internos y referencias a terceros, y **este repositorio es público**.
 
-### 🟡 Antes o poco después del lanzamiento
-
-- [ ] Altas de servicios: repo en `Brota-mx` + import a Vercel · Resend (dominio verificado) · Upstash Redis · Cloudflare Turnstile · variables en Vercel Production **y** Preview.
-- [ ] **Dominio `brotadigital.mx` → Vercel.** Revisar antes en Search Console qué URLs están indexadas para mapear redirecciones.
-- [ ] **Corregir el enlace de Instagram**: el sitio anterior apunta a `/brotadigital`, la cuenta real es `@brotadigitaal`.
-- [ ] Pedir testimonios reales a los tres clientes actuales.
-- [ ] Google Search Console + sitemap enviado. Google Business Profile si se decide publicar zona de servicio.
-- [ ] Página breve de términos: propiedad intelectual del portafolio y limitación de responsabilidad ("no se garantizan resultados específicos").
-- [ ] Definir número de WhatsApp de negocio para reemplazar el personal.
-- [ ] Decidir con la socia el nombre único de la marca. **Recomendación: "Brota Digital"** — es el nombre público, vive en el dominio activo y es el que reconocen los clientes. `Brota-mx` queda como namespace técnico interno.
-
-### 🔴 Fuera de este sitio, pero urgente
-
-- [ ] **REPEP** — el Registro Público para Evitar Publicidad (Art. 76 Bis LFPC) aplica a la promoción por medios electrónicos, **WhatsApp incluido**. Antes de la ronda de prospección masiva hay que consultarlo y excluir los números registrados, y detener el contacto de inmediato ante cualquier "no me contacten". Esto afecta al proyecto de Prospección, no a este sitio.
-- [ ] **Hosting de clientes de pago**: los planes venden "hosting incluido 6/12 meses". Vercel Hobby prohíbe uso comercial en sus términos. Definir dónde vive el hosting cobrado antes de vender el siguiente plan.
-
-### 🟢 Opcional
-
-- [ ] Fotos del equipo.
-- [ ] Cláusula de portafolio en los contratos futuros, para no pedir permiso caso por caso.
+Los pasos 9, 11 y 15 del orden de construcción dependen de que esa lista esté cerrada.
 
 ---
 
