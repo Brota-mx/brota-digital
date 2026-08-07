@@ -66,12 +66,13 @@ Parte del default de Brota. Solo se documentan las **desviaciones**:
 | **Selva** | Sitio completo: bilingüe, CMS, agenda, seguridad, suite E2E | $35,000 – 60,000 MXN | Ya existía (precio revisado) |
 | **Ecosistema** | Sistemas que trabajan solos: agentes de IA, automatización, integraciones | desde $80,000 MXN + mensualidad | **Nuevo** |
 
-### Contenido que falta y bloquea
+### Contenido que falta
 
-- 🔴 **Autorización escrita** de los dos clientes que se publican con nombre. Sin eso, esas dos páginas no se publican.
 - 🔴 **Capturas de los 3 sitios en producción** (desktop + móvil). Se generan con `playwright-cli` contra las URLs vivas.
-- 🟡 **Testimonios reales** de los clientes actuales. El sitio se lanza sin ellos si no llegan a tiempo; el bloque de casos con métricas es suficiente por sí solo. Los testimonios del sitio anterior **no se migran**.
 - 🟡 **Fotos del equipo**: por definir. El sitio funciona sin ellas.
+- Las páginas de caso que identifican al cliente tienen requisitos previos: ver §11.
+
+> **Sin testimonios.** No existe ninguno atribuible a un cliente real, y **jamás se escribe uno que no exista** — ni como relleno provisional, porque el relleno se queda. Los casos con métricas duras sostienen la prueba por sí solos. Aplica igual a reseñas, calificaciones y al marcado `Review`/`AggregateRating`.
 
 ---
 
@@ -269,7 +270,9 @@ Más: `BreadcrumbList` en internas · `FAQPage` en `/servicios` · `CreativeWork
 
 No son portafolio bonito: son contenido con intención de búsqueda vertical.
 
-`H1` con cliente + industria + servicio → contexto y problema → métricas duras → stack usado → testimonio atribuido con nombre y rol (señal E-E-A-T) → enlace interno al peldaño de la escalera usado y a `/contacto`.
+`H1` con cliente + industria + servicio → contexto y problema → métricas duras → stack usado → enlace interno al peldaño de la escalera usado y a `/contacto`.
+
+> Este esquema pedía además un testimonio atribuido con nombre y rol, por la señal E-E-A-T. **Se retiró**: no existe ninguno real y la señal no vale inventarlo. Se agrega el día que un cliente escriba uno, no antes.
 
 ### FAQ en lugar de blog
 
@@ -411,7 +414,7 @@ NEXT_PUBLIC_SITE_URL=
 6. **El trazo que brota** — componente `TalloSVG` con `animation-timeline: scroll()` y respaldo `rAF`. Verificar en móvil de gama media antes de seguir.
 7. **Home** — Hero (revelado atado al trazo) · Escalera (con scroll-snap horizontal en móvil) · Casos · Proceso · CTA · Marquee.
 8. **`/servicios`** — los 4 peldaños a detalle + bloque FAQ con `FAQPage` (§6).
-9. **`/casos` + las 3 páginas de caso** — capturas generadas con `playwright-cli` contra los sitios en producción. ⚠️ Las dos con nombre **no se publican sin la autorización escrita** de §11.
+9. **`/casos` + las 3 páginas de caso** — capturas generadas con `playwright-cli` contra los sitios en producción. ⚠️ Las páginas que identifican al cliente dependen de los requisitos previos de §11.
 10. **`/contacto` + formulario seguro** — 6 capas de §5 + batería de ≥10 casos curl + los 6 estados visibles.
 11. **`/aviso-de-privacidad` + 404** — contenido legal de §11.
 12. **Cierre SEO** — metadata única por página, sitemap y robots servidos, JSON-LD validado con Rich Results Test, 404 sin enlaces rotos, crawl con `playwright-cli`, **mapeo de redirecciones desde el sitio anterior**.
