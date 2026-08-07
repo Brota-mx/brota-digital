@@ -103,8 +103,8 @@ segmento muestra números.
 | Dra. Patricia García | Bilingüe ES/EN · CMS · agenda integrada · CSP y headers · 4 items válidos en Rich Results |
 | Despacho fiscalista (se publica **sin nombre ni logo**, solo el giro) | 52 tests E2E · rate limiting · Turnstile · dos sedes |
 
-⚠️ Las dos páginas de caso que se publican con nombre **están bloqueadas** hasta recibir la
-autorización escrita del cliente.
+⚠️ Las dos páginas de caso que se publican con nombre tienen requisitos previos que se
+resuelven fuera de este repositorio. **No se publican hasta cerrarlos** (`BLUEPRINT.md` §11).
 
 **Ausencias que el trabajo futuro NO debe rellenar inventando:**
 

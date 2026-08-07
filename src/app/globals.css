@@ -55,6 +55,12 @@
    `--color-*: initial` borra la paleta por defecto de Tailwind: sin esto,
    un `text-gray-500` o un `bg-slate-100` entra al sitio sin que nadie lo
    note y ya no hay una sola fuente de color. Solo existe lo de abajo.
+   `--font-*: initial` hace lo mismo con las familias: no hay `font-sans`
+   ni `font-mono`, solo las dos fuentes de la marca.
+
+   --font-fraunces y --font-dm-sans las inyecta next/font desde el layout;
+   aquí solo se les pone nombre de rol para que ningún componente cite una
+   fuente por su nombre propio.
    -------------------------------------------------------------------------- */
 @theme inline {
   --color-*: initial;
@@ -70,16 +76,53 @@
 
   --color-transparent: transparent;
   --color-current: currentColor;
+
+  --font-*: initial;
+
+  --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  --font-body: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
 /* --------------------------------------------------------------------------
    Base.
-   Las fuentes reales (Fraunces display + DM Sans cuerpo, self-hosted con
-   next/font) entran en el paso 3 del blueprint. Hasta entonces, stack del
-   sistema: cero requests a Google Fonts, ni ahora ni después.
+
+   ⚠️ Va dentro de `@layer base` a propósito. El CSS sin capa gana contra
+   TODAS las capas, incluida `utilities`: fuera de la capa, la regla de h1-h3
+   de abajo no la puede sobrescribir ni un `font-body` ni un `tracking-[…]`
+   en el JSX. Dentro de la capa, las utilidades mandan, que es lo correcto.
    -------------------------------------------------------------------------- */
-body {
-  background: var(--cream);
-  color: var(--black);
-  font-family: ui-sans-serif, system-ui, sans-serif;
+@layer base {
+  body {
+    background: var(--cream);
+    color: var(--black);
+    font-family: var(--font-body);
+    font-size: 16px; /* §4: cuerpo 17px, 16px en móvil */
+    line-height: 1.65;
+  }
+
+  @media (width >= 40rem) {
+    body {
+      font-size: 17px;
+    }
+  }
+
+  /* Los títulos son Fraunces por defecto. Tamaño y tracking finos por nivel
+     llegan con los componentes que los crean (pasos 5 y 7); aquí solo se fija
+     lo que sería un error olvidar: la familia, el peso y un interlineado de
+     display —el 1.65 del cuerpo separa un titular de 88px hasta romperlo. */
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+  }
+
+  /* Obligatorio en todo elemento interactivo, sin excepción (blueprint §4).
+     Nunca `outline: none` sin reemplazo. */
+  :focus-visible {
+    outline: 2px solid var(--coral-ink);
+    outline-offset: 2px;
+  }
 }
