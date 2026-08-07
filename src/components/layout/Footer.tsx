@@ -1,16 +1,13 @@
 import Link from "next/link";
 
 import { Wordmark } from "@/components/layout/Wordmark";
+import { Eyebrow } from "@/components/ui/Eyebrow";
 import { site } from "@/content/site";
 
 // Sección invertida: fondo --black. Ahí --gray da 3.3:1 y reprueba AA, así que
 // TODO el texto del footer va en --cream-2 (15.2:1) y la jerarquía se hace con
 // tamaño, no con color. Un tono atenuado obligaría a recalcular contraste cada
 // vez que alguien toque el footer.
-// `font-body` es explícito porque globals.css pone Fraunces en h1-h3 por
-// defecto y las etiquetas son DM Sans (§4).
-const eyebrow =
-  "font-body text-[11px] font-medium tracking-[0.18em] uppercase sm:text-xs";
 
 // Objetivo táctil de 44px del blueprint, alto Y ancho: «Casos» sola mide 40px
 // de ancho. El texto sigue alineado a la izquierda; solo crece la caja.
@@ -31,9 +28,9 @@ export function Footer() {
 
           <div className="grid grid-cols-2 gap-x-10 gap-y-8 sm:gap-x-16">
             <nav aria-labelledby="footer-sitio">
-              <h2 id="footer-sitio" className={eyebrow}>
+              <Eyebrow as="h2" id="footer-sitio">
                 Sitio
-              </h2>
+              </Eyebrow>
               <ul className="mt-2">
                 {site.nav.map((item) => (
                   <li key={item.href}>
@@ -46,7 +43,7 @@ export function Footer() {
             </nav>
 
             <div>
-              <h2 className={eyebrow}>Contacto</h2>
+              <Eyebrow as="h2">Contacto</Eyebrow>
               <ul className="mt-2">
                 <li>
                   <a
