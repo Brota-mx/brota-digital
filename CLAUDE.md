@@ -61,13 +61,22 @@ detiene y se lo dice a Jesús.
 
 ## Estado actual
 
-Pasos 1 a 5 del orden de construcción completados: scaffold + tokens · logo · layout base
-y SEO técnico · contenido tipado · sistema de componentes. Sigue el paso 6 (el trazo que
-brota).
+Pasos 1 a 6 del orden de construcción completados: scaffold + tokens · logo · layout base
+y SEO técnico · contenido tipado · sistema de componentes · el trazo que brota. Sigue el
+paso 7 (la Home).
 
-`components/ui/` tiene Button (3 niveles), Card, Metrica, Eyebrow y Grano. `/sistema` es
-el banco de pruebas contra el que se auditan: `noindex`, fuera del sitemap, y se borra
-cuando las secciones reales lo dejen sin uso.
+`components/ui/` tiene Button (3 niveles), Card, Metrica, Eyebrow y Grano, y
+`components/layout/TalloSVG.tsx` el efecto firma. `/sistema` es el banco de pruebas contra
+el que se auditan: `noindex`, fuera del sitemap, y se borra cuando las secciones reales lo
+dejen sin uso — el paso 7 muda el tallo ahí y la deja sin trabajo.
+
+⚠️ **El presupuesto de movimiento es más chico de lo que sugiere el blueprint.**
+`animation-timeline: scroll()` **no** saca el efecto del hilo principal cuando la propiedad
+animada no es componible, y `stroke-dashoffset` no lo es. Medido a 375px con la CPU frenada
+6×: el tallo presente sin animar no cuesta nada, animado sube la mediana de fotograma de
+12.5 a 16.7 ms. Los números y su método están en `components/layout/TalloSVG.tsx`. Antes de
+sumar efectos en una misma vista, medir — no dar por hecho que la línea de tiempo nativa
+sale gratis.
 
 ⚠️ **El grano de papel no es el 3% del blueprint.** Se midió y ese valor tumba el
 contraste AA de `--coral-ink`. El grano se reconstruyó para que solo aclare; el porqué,
