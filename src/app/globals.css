@@ -126,3 +126,47 @@
     outline-offset: 2px;
   }
 }
+
+/* --------------------------------------------------------------------------
+   Movimiento.
+
+   El único efecto animado del sitio hasta ahora es el tallo (paso 6). Vive
+   aquí y no en el componente porque las tres ramas de abajo son CSS puro, y
+   la primera —la línea de tiempo de scroll— es justamente la que corre fuera
+   del hilo principal. Va en `@layer components` para que cualquier utilidad de
+   Tailwind en el JSX le siga ganando.
+   -------------------------------------------------------------------------- */
+@keyframes brotar {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@layer components {
+  .tallo-trazo {
+    /* Estado base = trazo COMPLETO. Es lo que se ve sin soporte de scroll
+       timelines y sin JavaScript. Un efecto decorativo no degrada a invisible. */
+    stroke-dashoffset: 0;
+
+    /* Mandato técnico del blueprint §4: `animation-timeline: scroll()` donde
+       haya soporte. `scroll(root block)` = el avance vertical del documento.
+       `both` conserva el fotograma inicial: arriba del todo, el tallo no ha
+       brotado. El respaldo de listener + rAF, para los navegadores que no
+       entran aquí, está en `components/layout/TalloSVG.tsx`. */
+    @supports (animation-timeline: scroll()) {
+      animation: brotar linear both;
+      animation-timeline: scroll(root block);
+    }
+
+    /* La guarda. Apaga el movimiento SIN perder el dibujo: el tallo queda
+       entero, que es su estado final. Va después del @supports a propósito —
+       gana por orden. */
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+      stroke-dashoffset: 0;
+    }
+  }
+}
