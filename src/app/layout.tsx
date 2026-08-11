@@ -4,6 +4,7 @@ import { DM_Sans, Fraunces } from "next/font/google";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { Grano } from "@/components/ui/Grano";
+import { servicios } from "@/content/servicios";
 import { site } from "@/content/site";
 import "./globals.css";
 
@@ -51,9 +52,18 @@ export const metadata: Metadata = {
 // 🔴 Prohibido agregar `aggregateRating` o `review` mientras no existan
 // reseñas verificables reales (PRODUCT.md §Evidence on Hand).
 //
-// ponytail: falta `logo`. Google no soporta SVG para ese campo y el logo
-// rasterizado se genera en el paso 12 (cierre SEO), que es donde el JSON-LD
-// se valida con Rich Results Test. Se agrega ahí, no antes.
+// `logo` apunta a `/logo.png`, que no es un archivo sino una respuesta de
+// `next/og` (ver `app/logo.png/route.tsx`): Google no acepta SVG en ese campo
+// y el único SVG del icono ya vive inlineado. Un PNG generado del mismo path
+// no puede desincronizarse de un PNG dibujado a mano.
+//
+// `makesOffer` es el diagrama del blueprint §6: los cuatro peldaños salen de
+// `content/servicios.ts`, la misma fuente de la escalera de la home, de
+// `/servicios` y del select de presupuesto. Un peldaño nuevo entra al marcado
+// sin que nadie tenga que acordarse. Sin `price`: el rango es texto de display
+// («$3,500 – $6,000 MXN») y un precio en el marcado es un precio anunciado que
+// obliga (Art. 7 LFPC). El diagrama del blueprint pide Service, no Offer con
+// importe, y `priceRange` del nodo ya da la señal de nivel.
 const organizationJsonLd = {
   "@context": "https://schema.org",
   "@type": "ProfessionalService",
@@ -63,7 +73,18 @@ const organizationJsonLd = {
   description: site.description,
   priceRange: "$$-$$$$",
   inLanguage: "es-MX",
+  logo: `${site.url}/logo.png`,
   areaServed: site.areaServed.map((name) => ({ "@type": "Place", name })),
+  makesOffer: servicios.map((servicio) => ({
+    "@type": "Offer",
+    itemOffered: {
+      "@type": "Service",
+      name: servicio.nombre,
+      description: servicio.promesa,
+      areaServed: site.areaServed.map((name) => ({ "@type": "Place", name })),
+      provider: { "@id": `${site.url}/#organization` },
+    },
+  })),
   sameAs: [site.instagram.href],
   contactPoint: {
     "@type": "ContactPoint",
