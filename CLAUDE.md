@@ -61,9 +61,10 @@ detiene y se lo dice a Jesús.
 
 ## Estado actual
 
-Pasos 1 a 8 del orden de construcción completados: scaffold + tokens · logo · layout base
+Pasos 1 a 9 del orden de construcción completados: scaffold + tokens · logo · layout base
 y SEO técnico · contenido tipado · sistema de componentes · el trazo que brota · la Home ·
-`/servicios` + FAQ. Sigue el paso 9 (`/casos` + las 3 páginas de caso).
+`/servicios` + FAQ · `/casos` + las 3 páginas de caso. Sigue el paso 10 (`/contacto` +
+formulario de 6 capas).
 
 `components/sections/` tiene las seis secciones de la home (Hero, Escalera, Casos, Proceso,
 CTA, Marquee) y `components/layout/TalloSVG.tsx` el efecto firma, que ahora vive en la home
@@ -95,10 +96,30 @@ sustituyó `IntersectionObserver` por un stub, y eso apaga también el prefetch 
 contraste AA de `--coral-ink`. El grano se reconstruyó para que solo aclare; el porqué,
 con los números, está en `components/ui/Grano.tsx`.
 
-La navegación apunta a `/servicios` —que ya existe—, `/casos` y `/contacto`, que dan 404
-hasta los pasos 9-10, y también los enlazan la home y las tarjetas de caso
-(`/casos/[slug]`). Es el orden del blueprint, no un descuido: se prefirió eso a sembrar
-placeholders.
+De la navegación solo queda `/contacto` en 404, hasta el paso 10. Es el orden del
+blueprint, no un descuido: se prefirió eso a sembrar placeholders.
+
+`/casos` y `/casos/[slug]` **no llevan capturas**, aunque el blueprint §4 defina su
+tratamiento y §3 las liste como contenido pendiente: entran cuando se cierren los
+requisitos previos de §11, y hasta entonces la página se construye sin el bloque en vez de
+sembrar imágenes de relleno. El hueco natural es debajo del resumen de cada caso.
+
+Las tres páginas de caso siguen el orden de lectura del blueprint §6 al pie —H1 con
+cliente + industria + servicio, contexto, métricas duras, stack, enlace al peldaño y a
+`/contacto`— y llevan `BreadcrumbList` + `CreativeWork` con `about` apuntando a la
+industria. **En el marcado nunca va el nombre del cliente**: para el caso anónimo, un
+nombre en el JSON-LD es un nombre publicado aunque no se vea en la página.
+
+⚠️ **El bloque del peldaño muestra nombre y rango, nunca la promesa.** Un peldaño promete
+todo lo que *puede* incluir y ningún proyecto usa todo: la promesa de Selva habla de dos
+idiomas, gestor de contenido y agenda, y el caso del despacho fiscal no lleva ninguna de
+las tres. Al pie de un caso, esa promesa se lee como descripción de *ese* trabajo.
+
+Dos correcciones salieron de mirar las capturas, no de leer el código: las migas de pan
+daban **34×44 y 40×44** —la altura bien y el ancho no, exactamente el hallazgo del paso
+3—, y el nombre del cliente aparecía tres veces en el mismo golpe de vista (miga, eyebrow
+y encabezado). Se resolvió metiendo el nombre **dentro** del H1, que es lo que §6 pedía
+desde el principio, y quitando la eyebrow de esa página.
 
 `/servicios` **no lleva el tallo y no anima nada**. Medido en la misma corrida: la home
 gasta 7 457 ms de hilo principal por barrido de scroll a 375px con la CPU 6× y `/servicios`

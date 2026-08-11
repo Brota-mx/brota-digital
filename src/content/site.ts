@@ -67,5 +67,11 @@ export const site = {
    * Rutas que ya existen y se pueden indexar. Cada paso del blueprint agrega
    * la suya al aterrizar; el paso 12 (cierre SEO) verifica que estén todas.
    */
-  sitemap: ["/", "/servicios"],
+  /**
+   * Rutas fijas. Las de los casos NO se listan aquí: son una por entrada de
+   * `content/casos.ts` y las agrega `app/sitemap.ts` desde ese array, para que
+   * un caso nuevo entre al sitemap sin que haya que acordarse de escribirlo
+   * dos veces.
+   */
+  sitemap: ["/", "/servicios", "/casos"],
 } as const;

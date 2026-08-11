@@ -11,7 +11,7 @@
  * - Prohibido agregar testimonios, reseñas o calificaciones. No existen todavía
  *   y no se inventan ni como texto provisional, porque el relleno se queda.
  * - El caso `despacho-fiscal` se publica sin nombre ni logo, solo el giro.
- * - Las capturas llegan en el paso 9, generadas contra los sitios en vivo.
+ * - Las capturas NO llegaron en el paso 9: ver la nota al pie de este archivo.
  */
 
 import type { ServicioId } from "./servicios";
@@ -22,6 +22,19 @@ export const casos = [
     /** Nombre visible. `null` = el caso se publica sin identificar al cliente. */
     cliente: "Grupo Galarza",
     industria: "Construcción y desarrollo inmobiliario",
+    /**
+     * El H1 de la página del caso. Lleva cliente + industria + servicio en una
+     * sola línea, que es lo que pide el blueprint §6: la página compite por una
+     * búsqueda vertical y el encabezado tiene que decir de qué es sin que haya
+     * que leer el párrafo de abajo. Se escribe entero aquí y no se arma
+     * concatenando campos: un título es una frase, no una plantilla.
+     *
+     * Que el nombre del cliente vaya DENTRO del título es lo que permite que la
+     * página no lo repita tres veces (miga de pan, eyebrow y titular) — lo
+     * delató la captura a 375px.
+     */
+    titulo:
+      "Grupo Galarza: sitio bilingüe para construcción y desarrollo inmobiliario",
     /** Métrica de portada, para el índice y la home. */
     metrica: { valor: "94", etiqueta: "Lighthouse móvil, como mínimo" },
     resumen:
@@ -49,6 +62,8 @@ export const casos = [
     slug: "dra-patricia-garcia",
     cliente: "Dra. Patricia García",
     industria: "Medicina general y estética",
+    titulo:
+      "Dra. Patricia García: sitio bilingüe con agenda para un consultorio médico",
     metrica: { valor: "2", etiqueta: "idiomas, un solo sitio que ella opera" },
     resumen:
       "Un consultorio que publica su propio contenido, agenda en línea y atiende en dos idiomas.",
@@ -75,6 +90,9 @@ export const casos = [
     slug: "despacho-fiscal",
     cliente: null,
     industria: "Despacho fiscalista",
+    /** Sin nombre: el giro ocupa el lugar que en los otros dos ocupa el cliente. */
+    titulo:
+      "Despacho fiscalista: sitio de dos sedes con formulario protegido",
     metrica: { valor: "52", etiqueta: "pruebas automatizadas antes de publicar" },
     resumen:
       "Un despacho fiscalista con dos sedes, con el formulario de contacto protegido en capas.",
@@ -104,3 +122,56 @@ export const casos = [
 ] as const satisfies readonly { peldano: ServicioId; [k: string]: unknown }[];
 
 export type Caso = (typeof casos)[number];
+export type CasoSlug = Caso["slug"];
+
+/**
+ * Copy propio de `/casos` y de las tres páginas de caso (blueprint §3 y §6).
+ *
+ * Vive aquí, junto a los casos que rotula, por la misma razón que
+ * `serviciosPagina` vive junto a los peldaños: los rótulos y el contenido que
+ * rotulan se editan en la misma pasada o se desincronizan.
+ *
+ * ⚠️ SIN CAPTURAS, Y SE DICE
+ *
+ * El blueprint §4 define un tratamiento de capturas (16:10, esquinas de 8px,
+ * móvil y desktop en composición escalonada) y §3 las marca como contenido
+ * pendiente. Siguen pendientes: entran cuando se cierren los requisitos previos
+ * del blueprint §11, no antes. Se resolvió construir la página sin el bloque
+ * en vez de sembrar imágenes de relleno, porque el relleno se queda. El hueco
+ * natural, cuando toque, es debajo del resumen de cada caso.
+ */
+export const casosPagina = {
+  eyebrow: "Casos",
+  titulo: "Tres sitios en producción, con lo que se puede comprobar",
+  entrada:
+    "Cada caso dice qué necesitaba el negocio, qué se construyó y qué quedó medido. Sin testimonios: lo que sostiene el argumento son las métricas, y cada una se puede ir a verificar en el sitio publicado.",
+  /** Rótulo del enlace de cada tarjeta del índice al caso completo. */
+  verCaso: "Ver el caso",
+
+  /** Rótulos de las secciones de cada página de caso, en su orden de lectura. */
+  seccion: {
+    reto: "El reto",
+    solucion: "La solución",
+    resultados: "Resultados",
+    stack: "Con qué está hecho",
+  },
+
+  /** Migas de pan: rótulo visible y el que va al `BreadcrumbList`. */
+  migas: { inicio: "Inicio", casos: "Casos" },
+
+  /** Enlace interno caso → peldaño de la escalera (blueprint §6). */
+  peldano: {
+    eyebrow: "Peldaño de la escalera",
+    /** El nombre del peldaño y su rango los pone `content/servicios.ts`. */
+    enlace: "Ver qué incluye este peldaño",
+  },
+
+  cta: { label: "Cotizar un proyecto", href: "/contacto" },
+
+  cierre: {
+    eyebrow: "Siguiente paso",
+    titulo: "El siguiente caso puede ser el de tu negocio",
+    entrada:
+      "El formulario pide el rango de presupuesto desde el primer mensaje. Con eso y el contexto del negocio se responde con una propuesta real.",
+  },
+} as const;
