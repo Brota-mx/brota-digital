@@ -33,7 +33,10 @@ Upstash rate-limit + Turnstile + Resend (fail-closed)
 - `pnpm dev` — dev server en puerto **3400** (no 3000 — se engancha al de otro cliente)
 - `pnpm build` — debe salir verde antes de todo push
 - `pnpm audit --prod` — **0 vulnerabilidades siempre**
-- `pnpm test:e2e` — smoke Playwright (llega en el paso 14; su config va también a **3400**)
+- `pnpm start` — build de producción en **3400** (no en 3000: `dev` y `start` van al mismo)
+- `pnpm test:e2e` — smoke Playwright. Hace `build` + `start` él solo y **no reutiliza** un
+  servidor que ya esté en 3400: uno de una sesión anterior sirve el HTML de un `.next` que
+  el build ya reemplazó, y los chunks caen en 404 mientras el rojo señala al código.
 
 ## Reglas del proyecto
 
@@ -75,6 +78,18 @@ Upstash rate-limit + Turnstile + Resend (fail-closed)
 16. **Rama primero. Siempre.** Nunca se commitea directo a `main`: se abre rama, se revisa el
     diff, se empuja la rama, se mergea y se sincroniza. `main` queda para lo revisado, y así
     siempre hay dónde deshacer sin tocar historial público.
+17. **Con emulación móvil, `window.innerWidth` no sirve para medir desborde.** Chromium
+    ensancha el viewport de layout para acomodar lo que se sale, así que
+    `scrollWidth - innerWidth` da 0 justo cuando **sí** hay desborde: con un bloque de 900 px
+    metido a propósito en la home, `innerWidth` devolvió **901** y la resta dio 0. La
+    referencia que se queda en los 375 pedidos es `documentElement.clientWidth`, y con ella
+    ese mismo control da 526 px. Es la regla 15 otra vez, en otra propiedad.
+18. **Las capturas no se toman antes de que los contadores terminen.** Duran 900 ms desde que
+    el número cruza el 60% de la pantalla (`ui/Contador.tsx`). La primera tanda del paso 14
+    salió con **87 y 48** donde `content/casos.ts` dice **94 y 52**: evidencia archivada con
+    cifras que el sitio nunca enseña, y justo en la sección que promete que las cifras se
+    pueden ir a verificar. El componente estaba bien —sin JS, con `reduce` y al terminar da
+    94/2/52, los tres comprobados—; lo que estaba mal era el momento de disparar la cámara.
 
 ## Flujo de cada paso del build
 
@@ -102,8 +117,20 @@ detiene y se lo dice a Jesús.
 Pasos 1 a 10 del orden de construcción completados: scaffold + tokens · logo · layout base
 y SEO técnico · contenido tipado · sistema de componentes · el trazo que brota · la Home ·
 `/servicios` + FAQ · `/casos` + las 3 páginas de caso · `/contacto` + el formulario de 6
-capas. Y del **paso 11, solo el 404**; el **paso 12 (cierre SEO)** y el **paso 13 (cierre de
-seguridad)** completos.
+capas. Y del **paso 11, solo el 404**; el **paso 12 (cierre SEO)**, el **paso 13 (cierre de
+seguridad)** y el **paso 14 (cierre de QA visual)** completos. Solo queda el **paso 15
+(deploy)**, y ese está bloqueado a propósito — ver «Bloqueantes» arriba.
+
+⚠️ **El smoke de `e2e/` no prueba que el sitio se vea bien: prueba lo que se rompe sin
+fallar en rojo.** JSON-LD en línea que una CSP puede borrar, cabeceras que son
+configuración y no código, objetivos táctiles de 44×44 y desborde a 320/375. Todo lo
+demás —que la escalera se entienda, que la jerarquía funcione— sigue saliendo de mirar las
+capturas, que es de donde han salido casi todas las correcciones del proyecto.
+
+Lighthouse móvil contra el build de producción, en las 5 rutas medidas: **95-96** de
+rendimiento y **100** en accesibilidad, buenas prácticas y SEO. El listón de ≥90 del
+blueprint §7 se cumple con margen, y conviene que siga así: la home publica «94 Lighthouse
+móvil, como mínimo» como métrica de un caso.
 
 ⚠️ **La CSP y las cinco cabeceras viven en `next.config.ts` y se sirven en TODA respuesta**
 —páginas, 404, estáticos y `/api/contacto`—. Dos cosas antes de tocarlas:
