@@ -1,4 +1,4 @@
-import { contactoSchema, LIMITES, soloDigitos } from "@/lib/contacto";
+import { contactoSchema, soloDigitos } from "@/lib/contacto";
 
 /**
  * Endpoint del formulario de contacto — las 6 capas de seguridad de §5.
@@ -227,11 +227,10 @@ export async function POST(req: Request) {
   const env = leerEntorno();
   if (!env) return json({ error: "no-disponible" }, 503);
 
-  // Tope de cuerpo. Se mira la cabecera y además se mide lo leído: la cabecera
-  // la escribe el cliente y puede mentir.
-  const declarado = Number(req.headers.get("content-length") ?? 0);
-  if (declarado > CUERPO_MAX_BYTES) return json({ error: "grande" }, 413);
-
+  // Tope de cuerpo. Se mide lo LEÍDO y no la cabecera `content-length`: la
+  // cabecera la escribe el cliente y puede mentir, así que un cuerpo grande
+  // tiene que caer aquí de todas formas. Comprobar además la cabecera no cambia
+  // ni una respuesta — solo agrega la ilusión de dos defensas donde hay una.
   const crudo = await req.text();
   if (crudo.length > CUERPO_MAX_BYTES) return json({ error: "grande" }, 413);
 
@@ -257,13 +256,19 @@ export async function POST(req: Request) {
   const datos = parseo.data;
 
   // Capa 2.
+  //
+  // Sin recortes por longitud: Zod ya rechazó arriba lo que pasaba de
+  // `LIMITES`, y las tres funciones de saneo solo pueden ACORTAR —una etiqueta
+  // se cambia por un espacio, un esquema ejecutable y los caracteres de control
+  // por nada, y al final va un `trim`—. Un `.slice(0, LIMITES.x)` aquí no
+  // podría recortar un solo byte nunca.
   const limpio = {
-    nombre: unaLinea(datos.nombre).slice(0, LIMITES.nombre),
-    correo: unaLinea(datos.correo).slice(0, LIMITES.correo),
+    nombre: unaLinea(datos.nombre),
+    correo: unaLinea(datos.correo),
     telefono: soloDigitos(datos.telefono),
-    negocio: unaLinea(datos.negocio).slice(0, LIMITES.negocio),
+    negocio: unaLinea(datos.negocio),
     presupuesto: datos.presupuesto,
-    mensaje: variasLineas(datos.mensaje).slice(0, LIMITES.mensaje),
+    mensaje: variasLineas(datos.mensaje),
   };
 
   // El saneado puede dejar vacío lo que Zod dio por bueno: un nombre que era

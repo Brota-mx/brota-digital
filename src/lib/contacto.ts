@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { OPCIONES_PRESUPUESTO } from "@/content/contacto";
+import { LIMITES, OPCIONES_PRESUPUESTO } from "@/content/contacto";
 
 /**
  * Esquema del formulario de contacto — capa 1 de las 6 de §5.
@@ -34,19 +34,6 @@ import { OPCIONES_PRESUPUESTO } from "@/content/contacto";
 const DIEZ_DIGITOS_MX = /^(52)?\d{10}$/;
 
 export const soloDigitos = (v: string) => v.replace(/\D/g, "");
-
-/** Longitudes máximas de §5. También son el tope de lo que se sanea y se envía. */
-export const LIMITES = {
-  nombre: 80,
-  correo: 120,
-  telefono: 25,
-  negocio: 100,
-  mensaje: 1500,
-  /** El honeypot no debería traer nada; el tope es solo para no leer basura. */
-  honeypot: 200,
-  /** Turnstile emite tokens de ~2 KB. Con esto sobra y no se acepta un blob. */
-  token: 4096,
-} as const;
 
 /**
  * Mensaje de respaldo de cada campo de texto, para cuando el dato falta o no
@@ -124,7 +111,6 @@ export const contactoSchema = z.object({
     .max(LIMITES.token),
 });
 
-/** Lo que envía el cliente. `input` porque los `default()` aún no se aplicaron. */
-export type ContactoEntrada = z.input<typeof contactoSchema>;
-/** Lo que recibe el endpoint después de parsear. */
-export type Contacto = z.output<typeof contactoSchema>;
+// Sin tipos `input`/`output` exportados: los consumía el formulario cuando
+// llevaba React Hook Form. El endpoint usa el tipo que `safeParse` ya devuelve
+// inferido, y un alias que nadie importa es una firma más que mantener.

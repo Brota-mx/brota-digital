@@ -96,8 +96,7 @@ export const servicios = [
   },
 ] as const;
 
-export type Servicio = (typeof servicios)[number];
-export type ServicioId = Servicio["id"];
+export type ServicioId = (typeof servicios)[number]["id"];
 
 /**
  * Copy propio de la página `/servicios` (blueprint §3, fila `/servicios`).

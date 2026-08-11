@@ -53,8 +53,13 @@ next-env.d.ts
 # Ajustes locales de Claude Code (permisos de esta máquina)
 .claude/settings.local.json
 
-# Salidas de Playwright (los screenshots de QA sí se versionan,
-# en docs/qa/ — esto es el ruido del runner)
+# Salidas de Playwright y capturas de evidencia.
+#
+# Las capturas de cada fase se siguen tomando (regla 3): lo que cambia es dónde
+# viven. Eran 118 PNG y 42 MB versionados contra ~4 000 líneas de código —99%
+# del peso del repo era evidencia de proceso—, y el proceso ya tiene su lugar
+# fuera de un repositorio público. Aquí se toman; de aquí se archivan.
+/docs/qa/
 /test-results/
 /playwright-report/
 /blob-report/

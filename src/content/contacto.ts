@@ -34,7 +34,26 @@ export const OPCIONES_PRESUPUESTO = [
   "no-seguro",
 ] as const satisfies readonly (ServicioId | "no-seguro")[];
 
-export type OpcionPresupuesto = (typeof OPCIONES_PRESUPUESTO)[number];
+/**
+ * Longitudes máximas de §5.
+ *
+ * Viven aquí y no junto al esquema porque las leen los DOS lados: el esquema de
+ * `lib/contacto.ts` para rechazar, y los `maxLength` del formulario para que el
+ * navegador no deje teclear de más. Puestas junto al esquema, el formulario
+ * tendría que importar de un archivo que importa Zod — y arrastraría Zod entero
+ * al paquete del navegador para leer seis números.
+ */
+export const LIMITES = {
+  nombre: 80,
+  correo: 120,
+  telefono: 25,
+  negocio: 100,
+  mensaje: 1500,
+  /** El honeypot no debería traer nada; el tope es solo para no leer basura. */
+  honeypot: 200,
+  /** Turnstile emite tokens de ~2 KB. Con esto sobra y no se acepta un blob. */
+  token: 4096,
+} as const;
 
 export const contactoPagina = {
   eyebrow: "Contacto",
