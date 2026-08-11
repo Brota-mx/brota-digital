@@ -62,6 +62,20 @@ Formulario: RHF + Zod + honeypot + Upstash rate-limit + Turnstile + Resend (fail
     anima `scale`, así que `transform` devuelve `none` y parece roto cuando funciona. Y
     ninguna herramienta cuenta como prueba si no se la ha visto fallar: el control tiene que
     caer dentro del alcance de la regla que dice probar.
+16. **Rama primero. Siempre.** Nunca se commitea directo a `main`: se abre rama, se revisa el
+    diff, se empuja la rama, se mergea y se sincroniza. `main` queda para lo revisado, y así
+    siempre hay dónde deshacer sin tocar historial público.
+
+## Flujo de cada paso del build
+
+Sin excepciones, y en este orden:
+
+**rama → revisar el diff → empujar la rama → mergear → actualizar el vault → dejar el prompt
+de la siguiente sesión.**
+
+La revisión del diff incluye el barrido de la regla 14 y las verificaciones de la regla 3
+(build, lint, `audit --prod` en 0, capturas, `/impeccable`). Nada de eso se hace después del
+merge.
 
 ## Bloqueantes — construir sí, publicar no
 
