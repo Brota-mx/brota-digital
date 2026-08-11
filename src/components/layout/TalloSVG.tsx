@@ -1,14 +1,10 @@
-"use client";
-
-import { useEffect, useRef } from "react";
-
 /**
  * El trazo que brota (blueprint §4, efecto #1 — la firma del sitio).
  *
  * Un tallo capilar de 1px en --coral que crece de abajo hacia arriba conforme
  * se hace scroll. No aparece: emerge. Es el hilo conductor del sistema visual
- * ("la marca se llama Brota, los efectos crecen") y en el paso 7 será lo que
- * enhebre las secciones de la home y los 4 peldaños de la escalera.
+ * ("la marca se llama Brota, los efectos crecen") y en la home enhebra las
+ * secciones y los 4 peldaños de la escalera.
  *
  * CÓMO CRECE
  *
@@ -17,27 +13,26 @@ import { useEffect, useRef } from "react";
  * `stroke-dashoffset`, sin una sola multiplicación. Con `stroke-dasharray="1 1"`,
  * offset 1 = nada dibujado y offset 0 = trazo completo.
  *
- * El animado vive en `globals.css` (`.tallo-trazo`) porque tiene que ser CSS:
+ * TODO EL MOVIMIENTO VIVE EN `globals.css` (`.tallo-trazo`), Y NO HAY RESPALDO
  *
- *   1. `animation-timeline: scroll(root block)` donde haya soporte. El navegador
- *      lo corre FUERA del hilo principal — es el mandato técnico del blueprint
- *      §4 y la razón de que no haya tirones en móvil de gama media.
- *   2. `@media (prefers-reduced-motion: reduce)` lo apaga dejando el trazo
- *      ENTERO (offset 0), no vacío. La guarda quita el movimiento, nunca el
- *      dibujo.
- *   3. Sin soporte y sin JS, el valor base también es 0: el tallo se ve
- *      completo. Un efecto decorativo jamás degrada a "invisible para siempre".
+ * Son tres estados, y los tres los resuelve el CSS:
  *
- * Y ESTE COMPONENTE
+ *   1. Con `animation-timeline: scroll(root block)` — el trazo crece con el
+ *      avance del documento. Es el mandato técnico del blueprint §4.
+ *   2. Con `prefers-reduced-motion: reduce` — el trazo ENTERO (offset 0), no
+ *      vacío. La guarda quita el movimiento, nunca el dibujo.
+ *   3. Sin soporte de líneas de tiempo de scroll y sin JavaScript — el valor
+ *      base también es 0: el trazo se ve completo, quieto.
  *
- * Es el respaldo del punto 1: listener de scroll + `requestAnimationFrame` para
- * los navegadores sin scroll timelines (hoy Firefox y Safari). Se declara
- * cliente solo por eso; el SVG se sigue sirviendo renderizado desde el servidor.
+ * El tercer caso (hoy Firefox y Safari) tuvo durante un tiempo un respaldo de
+ * `scroll` + `requestAnimationFrame` que replicaba el crecimiento a mano. Se
+ * borró: 45 líneas y una frontera de cliente para que un adorno se mueva en dos
+ * navegadores, cuando el estado sin respaldo ya era el que este mismo archivo
+ * declaraba aceptable — «un efecto decorativo jamás degrada a invisible», y no
+ * degrada: degrada a dibujado y quieto. Además el respaldo era la versión cara
+ * del efecto, la que sí corre en el hilo principal en cada fotograma de scroll.
  *
- * Si el navegador sí soporta la línea de tiempo, el efecto NO monta nada: se
- * sale en la primera línea y el CSS hace todo el trabajo. Y si el usuario pide
- * menos movimiento, escribe el estado final y se queda ahí — la misma guarda
- * que el CSS, porque en esta rama el CSS ya no la puede aplicar.
+ * Sin ese respaldo el componente es de servidor: no manda un byte de JavaScript.
  *
  * Decoración pura: `aria-hidden` y sin objetivo de puntero. No lleva texto, así
  * que no toca `content/`.
@@ -55,14 +50,9 @@ import { useEffect, useRef } from "react";
  *   tallo presente sin animar  12.6 ms   ← estar ahí no cuesta nada
  *   tallo animado              16.7 ms   ← animar cuesta ~4 ms/fotograma
  *
- * Cuatro milisegundos sobre un presupuesto de 16.7 es un cuarto del fotograma
- * por UN elemento, y los conteos de fotogramas largos se solapan con el
- * control: hoy no hay tirón. Pero el paso 7 mete más movimiento en la misma
- * vista y el presupuesto es compartido — la regla de "máximo 1-2 elementos
- * animados por vista" del blueprint §4 tiene aquí su número, y conviene
- * volver a medir cuando el hero y las métricas se sumen. Si algún día no
- * alcanza, la salida es una técnica que sí componga (`transform` sobre un
- * trazo recto), a costa de la curva.
+ * Es el efecto más caro del sitio y por eso solo vive en la home. Si algún día
+ * no alcanza el presupuesto, la salida es una técnica que sí componga
+ * (`transform` sobre un trazo recto), a costa de la curva.
  *
  * ⚠️ El tallo vive en el canalón de la rejilla (el `px-6` del contenedor), no
  * debajo del texto. Es --coral, que está prohibido como letra: si algún día
@@ -70,51 +60,6 @@ import { useEffect, useRef } from "react";
  * "coral-ink sobre crema" y hay que volver a medir.
  */
 export function TalloSVG({ className = "" }: { className?: string }) {
-  const trazo = useRef<SVGPathElement>(null);
-
-  useEffect(() => {
-    const path = trazo.current;
-    if (!path) return;
-
-    // El navegador sabe hacerlo solo y mejor (compositor, no hilo principal).
-    if (CSS.supports("animation-timeline", "scroll()")) return;
-
-    const menosMovimiento = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    );
-
-    const dibujar = () => {
-      if (menosMovimiento.matches) {
-        // Misma guarda que el CSS: sin movimiento, pero con el trazo completo.
-        path.style.strokeDashoffset = "0";
-        return;
-      }
-      // El mismo progreso que `scroll(root block)`: recorrido / recorrido total.
-      const recorrido =
-        document.documentElement.scrollHeight - window.innerHeight;
-      const avance = recorrido > 0 ? window.scrollY / recorrido : 1;
-      path.style.strokeDashoffset = String(1 - Math.min(1, Math.max(0, avance)));
-    };
-
-    let pendiente = false;
-    const alHacerScroll = () => {
-      if (pendiente) return;
-      pendiente = true;
-      requestAnimationFrame(() => {
-        pendiente = false;
-        dibujar();
-      });
-    };
-
-    dibujar();
-    window.addEventListener("scroll", alHacerScroll, { passive: true });
-    menosMovimiento.addEventListener("change", dibujar);
-    return () => {
-      window.removeEventListener("scroll", alHacerScroll);
-      menosMovimiento.removeEventListener("change", dibujar);
-    };
-  }, []);
-
   return (
     <svg
       aria-hidden="true"
@@ -131,7 +76,6 @@ export function TalloSVG({ className = "" }: { className?: string }) {
       className={`pointer-events-none absolute inset-y-0 -z-10 h-full w-6 ${className}`}
     >
       <path
-        ref={trazo}
         className="tallo-trazo stroke-coral"
         d="M12 1000 C 4 880, 20 760, 12 640 S 4 400, 12 280 S 20 120, 12 0"
         fill="none"

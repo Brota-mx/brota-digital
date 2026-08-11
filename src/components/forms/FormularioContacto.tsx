@@ -1,29 +1,53 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import Script from "next/script";
 import { useCallback, useRef, useState } from "react";
-import { useForm } from "react-hook-form";
 
 import { Button } from "@/components/ui/Button";
 import { Eyebrow } from "@/components/ui/Eyebrow";
-import { contactoPagina, OPCIONES_PRESUPUESTO } from "@/content/contacto";
+import {
+  contactoPagina,
+  LIMITES,
+  OPCIONES_PRESUPUESTO,
+} from "@/content/contacto";
 import { servicios } from "@/content/servicios";
 import { site } from "@/content/site";
-import { contactoSchema, type Contacto, type ContactoEntrada } from "@/lib/contacto";
 
 /**
  * El formulario de contacto — la mitad de cliente de las 6 capas de §5.
  *
  * LO QUE ESTE COMPONENTE *NO* ES
  *
- * No es una capa de seguridad. Valida con el mismo esquema que el endpoint
- * (`lib/contacto.ts`) para que el error salga junto al campo en vez de después
- * de un viaje al servidor, pero cualquiera puede saltárselo con un `curl`. La
- * validación que cuenta está en `app/api/contacto/route.ts` y vuelve a correr
- * sobre el cuerpo crudo. Aquí lo único irreemplazable es el widget de
- * Turnstile, porque el token solo se puede emitir en el navegador.
+ * No es una capa de seguridad. Cualquiera puede saltárselo con un `curl`. La
+ * validación que cuenta está en `app/api/contacto/route.ts` y corre sobre el
+ * cuerpo crudo. Aquí lo único irreemplazable es el widget de Turnstile, porque
+ * el token solo se puede emitir en el navegador.
+ *
+ * SIN LIBRERÍA DE FORMULARIOS, Y QUIÉN VALIDA AHORA
+ *
+ * Llevaba React Hook Form + el resolver de Zod: dos dependencias que validaban
+ * en el navegador con el mismo esquema del endpoint. Se quitaron, y el trabajo
+ * quedó repartido entre los dos que ya lo hacían gratis:
+ *
+ * - El NAVEGADOR atrapa lo obvio antes de tocar la red, con los atributos que
+ *   el HTML ya trae: `required`, `type="email"`, `maxLength`, `minLength`. Por
+ *   eso el `<form>` ya no lleva `noValidate` — lo llevaba precisamente para
+ *   apagar esto y que validara la librería.
+ * - El SERVIDOR es la autoridad y siempre lo fue. Devuelve un mensaje por campo
+ *   (`{ error: "validacion", campos: {…} }`) y esos mensajes se pintan junto a
+ *   su control, que es exactamente lo que se pintaba antes.
+ *
+ * El precio: lo que el navegador no sabe comprobar —el formato del teléfono
+ * mexicano, un nombre que era solo etiquetas HTML— ya no se marca mientras se
+ * teclea, sino al enviar. Es un viaje de ida y vuelta en el caso raro, a cambio
+ * de no mandar un validador entero al teléfono de cada visitante. Y los mensajes
+ * del navegador salen en el idioma DEL NAVEGADOR, no del sitio: es el mismo
+ * trato que ya se acepta con los controles nativos del `<select>`.
+ *
+ * Sin React Hook Form este archivo tampoco importa `lib/contacto.ts`, que es lo
+ * que mantiene a Zod fuera del paquete del navegador. Los topes de longitud
+ * viven en `content/contacto.ts` por esa razón.
  *
  * LOS SEIS ESTADOS VISIBLES (§5)
  *
@@ -75,6 +99,7 @@ const SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
 type Estado =
   | "reposo"
+  | "enviando"
   | "exito"
   | "validacion"
   | "servidor"
@@ -82,8 +107,8 @@ type Estado =
   | "limite"
   | "verificacion";
 
-/** Los estados que se anuncian en la banda de aviso, con su tono. */
-const AVISOS: Record<string, string> = {
+/** Los estados que se anuncian en la banda de aviso. */
+const AVISOS: Partial<Record<Estado, string>> = {
   validacion: contactoPagina.estados.errorValidacion,
   servidor: contactoPagina.estados.errorServidor,
   "no-disponible": contactoPagina.estados.errorNoDisponible,
@@ -96,30 +121,16 @@ const campoBase =
 
 export function FormularioContacto() {
   const [estado, setEstado] = useState<Estado>("reposo");
+  /** Mensaje por campo, tal como lo devuelve el endpoint. */
+  const [errores, setErrores] = useState<Record<string, string>>({});
 
   const contenedorWidget = useRef<HTMLDivElement>(null);
   const widget = useRef<string | undefined>(undefined);
-
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    setError,
-    formState: { errors, isSubmitting },
-  } = useForm<ContactoEntrada, unknown, Contacto>({
-    resolver: zodResolver(contactoSchema),
-    // El esquema los declara con `default("")`, así que sin esto React los
-    // trataría como campos no controlados y avisaría al primer tecleo.
-    defaultValues: {
-      nombre: "",
-      correo: "",
-      telefono: "",
-      negocio: "",
-      mensaje: "",
-      website: "",
-      token: "",
-    },
-  });
+  /**
+   * El token va en una ref y no en el estado: no se pinta en ningún lado, así
+   * que guardarlo en `useState` solo compraría un re-render por cada token.
+   */
+  const token = useRef("");
 
   /**
    * Pinta el widget con render explícito.
@@ -147,22 +158,45 @@ export function FormularioContacto() {
       // girar el teléfono; entre 150 y 300 el `compact` sobra y no estorba.
       size: contenedorWidget.current.clientWidth < 300 ? "compact" : "normal",
       language: "es",
-      callback: (token) => setValue("token", token, { shouldValidate: true }),
+      callback: (t) => {
+        token.current = t;
+        // Si el intento anterior murió por falta de token, el mensaje deja de
+        // ser cierto en cuanto el widget entrega uno. Se vacía en vez de
+        // borrarse: la vista solo pregunta si hay texto, y el mismo objeto se
+        // reemplaza entero en el siguiente envío.
+        setErrores((previos) =>
+          previos.token ? { ...previos, token: "" } : previos,
+        );
+      },
       // Un token vale una vez y caduca a los 5 minutos. Al vencer o fallar se
       // borra: el formulario vuelve a estar incompleto, que es la verdad.
-      "expired-callback": () => setValue("token", ""),
-      "error-callback": () => setValue("token", ""),
+      "expired-callback": () => {
+        token.current = "";
+      },
+      "error-callback": () => {
+        token.current = "";
+      },
     });
-  }, [setValue]);
+  }, []);
 
-  const onSubmit = async (valores: Contacto) => {
-    setEstado("reposo");
+  const onSubmit = async (evento: React.FormEvent<HTMLFormElement>) => {
+    evento.preventDefault();
+    const formulario = evento.currentTarget;
+
+    setEstado("enviando");
+    setErrores({});
+
+    // `FormData` lee el formulario del DOM: cada control aporta su `name` y su
+    // valor, sin que haya que registrarlos uno por uno ni mantener una copia
+    // del estado en React. El honeypot entra aquí como un campo más, que es lo
+    // que el esquema del endpoint espera.
+    const campos = Object.fromEntries(new FormData(formulario));
 
     try {
       const r = await fetch("/api/contacto", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(valores),
+        body: JSON.stringify({ ...campos, token: token.current }),
       });
 
       if (r.ok) {
@@ -177,11 +211,7 @@ export function FormularioContacto() {
       else if (r.status === 503) setEstado("no-disponible");
       else if (cuerpo.error === "verificacion") setEstado("verificacion");
       else if (cuerpo.error === "validacion" && cuerpo.campos) {
-        // El servidor puede rechazar algo que el cliente dio por bueno; su
-        // mensaje gana y se pinta junto al campo, igual que los locales.
-        for (const [campo, mensaje] of Object.entries(cuerpo.campos)) {
-          setError(campo as keyof ContactoEntrada, { message: mensaje });
-        }
+        setErrores(cuerpo.campos);
         setEstado("validacion");
       } else setEstado("servidor");
     } catch {
@@ -192,7 +222,7 @@ export function FormularioContacto() {
     // el segundo envío manda un token quemado y Turnstile lo rechaza —un fallo
     // que parece del formulario y es del widget.
     window.turnstile?.reset(widget.current);
-    setValue("token", "");
+    token.current = "";
   };
 
   // ── Éxito: sustituye al formulario ────────────────────────────────────────
@@ -218,6 +248,7 @@ export function FormularioContacto() {
   }
 
   const aviso = AVISOS[estado];
+  const enviando = estado === "enviando";
 
   return (
     <>
@@ -232,7 +263,6 @@ export function FormularioContacto() {
       )}
 
       <form
-        noValidate
         // `method="post"` sin `action` no es decoración: un formulario sin los
         // dos hace GET a la ruta actual, y eso mete nombre, correo y teléfono
         // en la barra de direcciones, en el historial y en los registros del
@@ -240,11 +270,7 @@ export function FormularioContacto() {
         // `onSubmit` —sin JS el formulario ni se muestra, ver el `noscript` de
         // la página—, pero es un atributo contra una fuga de datos personales.
         method="post"
-        // El envoltorio no sobra: `onSubmit` lee `widget.current` al terminar,
-        // y `handleSubmit(onSubmit)` evaluado en el render le pasaría a React
-        // una función que toca una ref durante el renderizado. Construido
-        // dentro del manejador, se arma cuando ya hay evento.
-        onSubmit={(e) => handleSubmit(onSubmit)(e)}
+        onSubmit={onSubmit}
         // `relative` es para el honeypot, que se saca del lienzo con posición
         // absoluta y necesita un contenedor posicionado.
         className="relative"
@@ -265,32 +291,37 @@ export function FormularioContacto() {
           <Campo
             id="nombre"
             label={contactoPagina.campos.nombre.label}
-            error={errors.nombre?.message}
+            error={errores.nombre}
           >
             <input
               id="nombre"
+              name="nombre"
               type="text"
+              required
+              minLength={2}
+              maxLength={LIMITES.nombre}
               autoComplete="name"
-              aria-invalid={!!errors.nombre}
-              aria-describedby={errors.nombre ? "nombre-error" : undefined}
+              aria-invalid={!!errores.nombre}
+              aria-describedby={errores.nombre ? "nombre-error" : undefined}
               className={campoBase}
-              {...register("nombre")}
             />
           </Campo>
 
           <Campo
             id="correo"
             label={contactoPagina.campos.correo.label}
-            error={errors.correo?.message}
+            error={errores.correo}
           >
             <input
               id="correo"
+              name="correo"
               type="email"
+              required
+              maxLength={LIMITES.correo}
               autoComplete="email"
-              aria-invalid={!!errors.correo}
-              aria-describedby={errors.correo ? "correo-error" : undefined}
+              aria-invalid={!!errores.correo}
+              aria-describedby={errores.correo ? "correo-error" : undefined}
               className={campoBase}
-              {...register("correo")}
             />
           </Campo>
 
@@ -298,19 +329,21 @@ export function FormularioContacto() {
             id="telefono"
             label={contactoPagina.campos.telefono.label}
             ayuda={contactoPagina.campos.telefono.ayuda}
-            error={errors.telefono?.message}
+            error={errores.telefono}
           >
             <input
               id="telefono"
+              name="telefono"
               type="tel"
+              required
+              maxLength={LIMITES.telefono}
               inputMode="tel"
               autoComplete="tel"
-              aria-invalid={!!errors.telefono}
+              aria-invalid={!!errores.telefono}
               aria-describedby={
-                errors.telefono ? "telefono-error" : "telefono-ayuda"
+                errores.telefono ? "telefono-error" : "telefono-ayuda"
               }
               className={campoBase}
-              {...register("telefono")}
             />
           </Campo>
 
@@ -318,18 +351,20 @@ export function FormularioContacto() {
             id="negocio"
             label={contactoPagina.campos.negocio.label}
             ayuda={contactoPagina.campos.negocio.ayuda}
-            error={errors.negocio?.message}
+            error={errores.negocio}
           >
+            {/* El único campo opcional: sin `required`. */}
             <input
               id="negocio"
+              name="negocio"
               type="text"
+              maxLength={LIMITES.negocio}
               autoComplete="organization"
-              aria-invalid={!!errors.negocio}
+              aria-invalid={!!errores.negocio}
               aria-describedby={
-                errors.negocio ? "negocio-error" : "negocio-ayuda"
+                errores.negocio ? "negocio-error" : "negocio-ayuda"
               }
               className={campoBase}
-              {...register("negocio")}
             />
           </Campo>
 
@@ -339,18 +374,19 @@ export function FormularioContacto() {
             id="presupuesto"
             label={contactoPagina.campos.presupuesto.label}
             ayuda={contactoPagina.campos.presupuesto.ayuda}
-            error={errors.presupuesto?.message}
+            error={errores.presupuesto}
             className="sm:col-span-2"
           >
             <select
               id="presupuesto"
+              name="presupuesto"
+              required
               defaultValue=""
-              aria-invalid={!!errors.presupuesto}
+              aria-invalid={!!errores.presupuesto}
               aria-describedby={
-                errors.presupuesto ? "presupuesto-error" : "presupuesto-ayuda"
+                errores.presupuesto ? "presupuesto-error" : "presupuesto-ayuda"
               }
               className={`${campoBase} cursor-pointer`}
-              {...register("presupuesto")}
             >
               <option value="" disabled>
                 {contactoPagina.presupuestoVacio}
@@ -374,18 +410,21 @@ export function FormularioContacto() {
             id="mensaje"
             label={contactoPagina.campos.mensaje.label}
             ayuda={contactoPagina.campos.mensaje.ayuda}
-            error={errors.mensaje?.message}
+            error={errores.mensaje}
             className="sm:col-span-2"
           >
             <textarea
               id="mensaje"
+              name="mensaje"
               rows={6}
-              aria-invalid={!!errors.mensaje}
+              required
+              minLength={10}
+              maxLength={LIMITES.mensaje}
+              aria-invalid={!!errores.mensaje}
               aria-describedby={
-                errors.mensaje ? "mensaje-error" : "mensaje-ayuda"
+                errores.mensaje ? "mensaje-error" : "mensaje-ayuda"
               }
               className={`${campoBase} resize-y`}
-              {...register("mensaje")}
             />
           </Campo>
         </div>
@@ -394,37 +433,42 @@ export function FormularioContacto() {
         {/* Fuera del lienzo en vez de `display:none`: hay bots que saltan lo
             que no se renderiza. `aria-hidden` y `tabIndex={-1}` lo sacan del
             camino de quien navega con lector de pantalla o con teclado, que
-            son justamente los que caerían en la trampa por accidente. */}
+            son justamente los que caerían en la trampa por accidente.
+
+            Nunca `required`: un control obligatorio que no se puede enfocar
+            atasca la validación nativa del navegador sin decir por qué. */}
         <div aria-hidden="true" className="absolute top-0 -left-[9999px]">
           <label htmlFor="website">{contactoPagina.honeypot}</label>
           <input
             id="website"
+            name="website"
             type="text"
             tabIndex={-1}
             autoComplete="off"
-            {...register("website")}
+            maxLength={LIMITES.honeypot}
           />
         </div>
 
         {/* ── Turnstile (capa 5) ─────────────────────────────────────────── */}
+        {/* El token no es un campo del formulario: lo emite el widget y se
+            agrega al cuerpo en el envío. Su error sí se pinta aquí, porque es
+            aquí donde está el control que lo resuelve. */}
         <div className="mt-10">
           <div ref={contenedorWidget} />
-          {errors.token?.message && (
-            <p className="mt-3 text-sm text-coral-ink">
-              {errors.token.message}
-            </p>
+          {errores.token && (
+            <p className="mt-3 text-sm text-coral-ink">{errores.token}</p>
           )}
         </div>
 
         <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4">
           <Button
             type="submit"
-            disabled={isSubmitting}
+            disabled={enviando}
             // El ancho mínimo cabe a las dos etiquetas: sin él, «Enviando…»
             // encoge el botón y el layout salta (§5).
             className="min-w-[13rem]"
           >
-            {isSubmitting ? contactoPagina.enviando : contactoPagina.enviar}
+            {enviando ? contactoPagina.enviando : contactoPagina.enviar}
           </Button>
 
           {/* La frase y el enlace, separados. `min-h-11 min-w-11` es la regla

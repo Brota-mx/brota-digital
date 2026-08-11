@@ -1,5 +1,4 @@
 import { ButtonLink } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { home } from "@/content/home";
 import { servicios } from "@/content/servicios";
@@ -64,6 +63,15 @@ import { servicios } from "@/content/servicios";
  * #1: «conecta secciones y enlaza los 4 peldaños»). Va debajo de las tarjetas y
  * nunca detrás de una letra: --coral está prohibido como texto y como fondo de
  * texto.
+ *
+ * LA SUPERFICIE ES CLASES, NO UN COMPONENTE
+ *
+ * Las tarjetas fueron un `<Card>` en `components/ui/`. Se disolvió aquí: en
+ * todo el sitio esta sección era su único consumidor, y su única variante
+ * —`invertida`— la usaba un solo peldaño. Un componente con un solo llamador no
+ * abstrae nada; solo obliga a abrir dos archivos para leer una tarjeta. Si algún
+ * día una segunda sección necesita la misma superficie, ahí se vuelve a extraer,
+ * y ese día sí sabremos qué tienen en común las dos.
  */
 
 // 100% · 116% · 134% · 156% del blueprint, sobre una base de 300px. Es altura
@@ -103,36 +111,48 @@ export function Escalera() {
       </div>
 
       <ul className="mt-10 grid gap-4 md:mt-14 md:grid-cols-4 md:items-end md:gap-6">
-        {servicios.map((servicio, i) => (
-          <li key={servicio.id} className={`flex ${alturas[i]}`}>
-            <Card
-              invertida={i === servicios.length - 1}
-              // `md:justify-end` cuelga el contenido de la base: el aire de
-              // arriba es lo que hace visible el peldaño. En móvil no aplica —
-              // sin altura mínima no hay aire que repartir, y el contenido se
-              // lee de arriba abajo como cualquier tarjeta.
-              className="w-full md:justify-end"
-            >
-              <h3 className="text-[clamp(24px,3vw,34px)]">{servicio.nombre}</h3>
-              <p
-                className={`mt-3 text-sm ${
-                  i === servicios.length - 1 ? "text-cream-2" : "text-gray"
+        {servicios.map((servicio, i) => {
+          // Ecosistema, el último peldaño. Invierte a negro porque es el salto
+          // de escala de la escalera, no un color más — y eso cambia el color
+          // de todo lo que lleva dentro.
+          const esUltimo = i === servicios.length - 1;
+
+          return (
+            <li key={servicio.id} className={`flex ${alturas[i]}`}>
+              <div
+                // `md:justify-end` cuelga el contenido de la base: el aire de
+                // arriba es lo que hace visible el peldaño. En móvil no aplica
+                // — sin altura mínima no hay aire que repartir, y el contenido
+                // se lee de arriba abajo como cualquier tarjeta.
+                className={`flex w-full flex-col md:justify-end ${
+                  esUltimo
+                    ? "bg-black p-8 text-cream-2 sm:p-10"
+                    : "border-t border-black/15 bg-cream-2 p-6 sm:p-8"
                 }`}
               >
-                {servicio.promesa}
-              </p>
-              {/* En la tarjeta invertida el rango va en --cream-2 (15.2:1) y no
-                  en --coral-ink, que sobre negro da 3.7:1 y reprueba AA. */}
-              <p
-                className={`mt-5 text-sm font-medium ${
-                  i === servicios.length - 1 ? "text-cream-2" : "text-black"
-                }`}
-              >
-                {servicio.rango}
-              </p>
-            </Card>
-          </li>
-        ))}
+                <h3 className="text-[clamp(24px,3vw,34px)]">
+                  {servicio.nombre}
+                </h3>
+                <p
+                  className={`mt-3 text-sm ${
+                    esUltimo ? "text-cream-2" : "text-gray"
+                  }`}
+                >
+                  {servicio.promesa}
+                </p>
+                {/* En la tarjeta invertida el rango va en --cream-2 (15.2:1) y
+                    no en --coral-ink, que sobre negro da 3.7:1 y reprueba AA. */}
+                <p
+                  className={`mt-5 text-sm font-medium ${
+                    esUltimo ? "text-cream-2" : "text-black"
+                  }`}
+                >
+                  {servicio.rango}
+                </p>
+              </div>
+            </li>
+          );
+        })}
       </ul>
 
       {/* El suelo. Pegado a la base de las cuatro tarjetas y con `-mx-6` para
