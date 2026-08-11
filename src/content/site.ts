@@ -10,8 +10,14 @@
  */
 
 // Sin barra final: todas las URLs absolutas se construyen concatenando.
+//
+// `||` y no `??`: la variable puede llegar DEFINIDA Y VACÍA —es lo que produce
+// copiar `.env.example` a `.env.local`, y también crear la variable en Vercel
+// antes de tener el valor—. `??` deja pasar la cadena vacía, que muere después
+// en `new URL()` de `layout.tsx` con un error que señala al layout y no a la
+// configuración, que es donde de verdad está el problema.
 const url = (
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://brotadigital.mx"
+  process.env.NEXT_PUBLIC_SITE_URL || "https://brotadigital.mx"
 ).replace(/\/+$/, "");
 
 export const site = {
