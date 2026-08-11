@@ -2,6 +2,11 @@ import { expect, test } from "@playwright/test";
 
 import { casos } from "../src/content/casos";
 import { contactoPagina } from "../src/content/contacto";
+import {
+  avisoCompleto,
+  avisoPrivacidad,
+  camposPendientes,
+} from "../src/content/legal";
 import { site } from "../src/content/site";
 
 /**
@@ -32,11 +37,22 @@ import { site } from "../src/content/site";
  * dónde se corta: el camino de éxito no lo ha recorrido nadie todavía.
  */
 
+/** Las páginas que existen. El aviso de privacidad, solo si está completo. */
 const RUTAS = [
   "/",
   ...site.sitemap.filter((r) => r !== "/"),
   ...casos.map((c) => `/casos/${c.slug}`),
+  ...(avisoCompleto ? [site.legal.href] : []),
 ];
+
+/**
+ * Todo lo que un visitante puede pedir, exista o no.
+ *
+ * El `Set` evita que el aviso entre dos veces cuando sí existe: lo que se
+ * comprueba aquí —desborde, objetivos táctiles, consola— tiene que valer
+ * también para el 404, que es una página del sitio como cualquier otra.
+ */
+const TODAS = [...new Set([...RUTAS, site.legal.href])];
 
 /** Las seis del paso 13, servidas en toda respuesta. */
 const CABECERAS = [
@@ -80,17 +96,43 @@ test.describe("las páginas del sitio", () => {
   });
 });
 
-test("el aviso de privacidad da 404 con la página del sitio", async ({
+// El aviso de privacidad tiene DOS estados válidos y la prueba cubre los dos,
+// eligiendo por la misma condición que decide la ruta (`content/legal.ts`).
+// Escrita solo contra el 404, se pondría en rojo el día que se llenen los
+// datos de identidad — un rojo que diría «se rompió» cuando lo que pasó es que
+// por fin se completó.
+test("el aviso de privacidad: 404 mientras falten datos, página cuando estén", async ({
   page,
 }) => {
   const respuesta = await page.goto(site.legal.href);
-  expect(respuesta?.status()).toBe(404);
 
-  // El 404 de Next no lleva el header del sitio; el del sitio sí.
-  await expect(page.locator("h1")).toHaveCount(1);
-  for (const { href } of site.nav) {
-    await expect(page.locator(`main a[href="${href}"]`).first()).toBeVisible();
+  if (!avisoCompleto) {
+    expect(
+      respuesta?.status(),
+      `faltan: ${camposPendientes.join(", ")}`,
+    ).toBe(404);
+
+    // El 404 de Next no lleva el header del sitio; el del sitio sí.
+    await expect(page.locator("h1")).toHaveCount(1);
+    for (const { href } of site.nav) {
+      await expect(page.locator(`main a[href="${href}"]`).first()).toBeVisible();
+    }
+    return;
   }
+
+  expect(respuesta?.status()).toBe(200);
+  await expect(page.locator("h1")).toHaveText(avisoPrivacidad.titulo);
+
+  // Ningún marcador sin resolver puede llegar a la página publicada. Los
+  // corchetes 〔…〕 son los del borrador del vault; los rectos, el descuido más
+  // probable al llenar los datos a mano.
+  const texto = await page.locator("main").innerText();
+  expect(texto).not.toMatch(/〔|〕|\[[^\]]*\]/);
+
+  // Y el sitemap tiene que anunciarla: si la página existe y el sitemap no la
+  // lista, las dos fuentes se desincronizaron.
+  const sitemap = await page.request.get("/sitemap.xml");
+  expect(await sitemap.text()).toContain(site.legal.href);
 });
 
 test("las seis cabeceras de seguridad viajan en toda respuesta", async ({
@@ -111,7 +153,7 @@ test("las seis cabeceras de seguridad viajan en toda respuesta", async ({
 test("ninguna ruta desborda a lo ancho a 320 ni a 375", async ({ page }) => {
   for (const ancho of [320, 375]) {
     await page.setViewportSize({ width: ancho, height: 812 });
-    for (const ruta of [...RUTAS, site.legal.href]) {
+    for (const ruta of TODAS) {
       await page.goto(ruta);
       // Contra `clientWidth`, NUNCA contra `window.innerWidth`. Con emulación
       // móvil Chromium ensancha el viewport de layout para acomodar lo que
@@ -132,7 +174,7 @@ test("ningún objetivo táctil baja de 44×44", async ({ page }) => {
   // La regla 12 del CLAUDE.md, y la única que ha fallado dos veces: en la nav
   // del paso 3 y en las migas del paso 9, las dos por el ANCHO, porque el alto
   // es el que se escribe solo. No la caza mirar la captura: la caza medir.
-  for (const ruta of [...RUTAS, site.legal.href]) {
+  for (const ruta of TODAS) {
     await page.goto(ruta);
     const chicos = await page.evaluate(() =>
       [...document.querySelectorAll("a, button, select, input, textarea")]
@@ -203,7 +245,7 @@ test("la consola no reporta errores ni peticiones fallidas", async ({
     }
   });
 
-  for (const ruta of [...RUTAS, site.legal.href]) await page.goto(ruta);
+  for (const ruta of TODAS) await page.goto(ruta);
 
   expect(errores).toEqual([]);
 });
