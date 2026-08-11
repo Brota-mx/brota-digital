@@ -102,7 +102,13 @@ detiene y se lo dice a Jesús.
 Pasos 1 a 10 del orden de construcción completados: scaffold + tokens · logo · layout base
 y SEO técnico · contenido tipado · sistema de componentes · el trazo que brota · la Home ·
 `/servicios` + FAQ · `/casos` + las 3 páginas de caso · `/contacto` + el formulario de 6
-capas. Sigue el paso 11 (`/aviso-de-privacidad` + 404).
+capas. Y del **paso 11, solo el 404**; el **paso 12 (cierre SEO)** completo.
+
+⚠️ **`/aviso-de-privacidad` sigue sin construirse, y es a propósito.** Su borrador está en
+las notas internas del proyecto, sin cerrar y con huecos por llenar; publicarlo así sería
+peor que no tenerlo. Por eso el enlace legal —footer y formulario— es el **único** enlace
+del sitio que apunta a un 404, y ahora ese 404 al menos es una página del sitio y no la de
+Next. No llenar esos huecos ni redactar texto legal de relleno.
 
 `components/sections/` tiene las seis secciones de la home (Hero, Escalera, Casos, Proceso,
 CTA, Marquee) y `components/layout/TalloSVG.tsx` el efecto firma, que ahora vive en la home
@@ -182,6 +188,22 @@ anti-robots no se puede emitir, así que el formulario no podría enviarse de to
 foco justo después de un `Tab` devuelve un color intermedio y parece que la regla no aplica.
 Hay que dejar asentar la transición antes de medir — es la regla 15 otra vez, en otra
 propiedad.
+
+⚠️ **El detector de `/impeccable` nunca estuvo roto: el control del paso 10 estaba fuera de
+su alcance.** Se le pidió que fallara con hex sueltos, un emoji, `hover:scale-105` y
+`shadow-lg` —que son reglas de **este** `CLAUDE.md`, no del detector— y devolvió 0, que era
+la respuesta correcta. Con un control dentro de su alcance (`border-l-4` en una tarjeta
+redondeada, `bg-clip-text` con gradiente, `animate-bounce`, `font-family: Inter`) devuelve 4
+hallazgos y **exit 2**. La CLI es `scripts/detect.mjs`, no `scripts/detect-antipatterns.mjs`
+—esa ruta no existe y `node` sale con **0** al no encontrar el módulo, que es la mitad de
+cómo se leyó como «gate en verde»—. La regla 15 aplica a la regla 15: un control que no cae
+dentro del alcance de la herramienta no prueba que la herramienta esté rota.
+
+⚠️ **No hay OG por página, y el blueprint §6 la pide.** Rendirla exige meter un binario de
+fuente al repo o bajar Google Fonts en el build, para dibujar dentro de la imagen el mismo
+titular que la plataforma ya pinta como texto al lado, desde el `title` y la `description`
+que sí son únicos por ruta. Se queda la OG de marca única. Si algún día se hace, que sea
+porque el titular dentro de la imagen aporta algo que el de al lado no.
 
 `/casos` y `/casos/[slug]` **no llevan capturas**, aunque el blueprint §4 defina su
 tratamiento y §3 las liste como contenido pendiente: entran cuando se cierren los

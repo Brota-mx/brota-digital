@@ -282,19 +282,40 @@ Si en 12 meses quieren más volumen, la ruta es **MDX en el repo** (publicación
 
 ### Migración desde GitHub Pages
 
-El dominio ya sirve un sitio con URLs de anclas (`#servicios`, `#precios`, `#proceso`). Al pasar a rutas reales:
+> ⚠️ **Corregido en el paso 12 (11-ago-2026).** Lo que sigue reemplaza al mapeo
+> original de anclas, que no era implementable. El porqué está abajo y en
+> `next.config.ts`.
 
-- `#servicios` y `#paquetes` → `/servicios`
-- `#proceso` → `/#proceso`
-- `#contacto` → `/contacto`
+El dominio ya sirve un sitio con URLs de anclas (`#servicios`, `#paquetes`, `#proceso`, `#contacto`).
+
+**Las anclas no se redirigen, porque no se puede.** El fragmento de una URL lo
+resuelve el navegador y **nunca viaja en la petición**: el servidor de
+`brotadigital.mx/#servicios` recibe `/` y nada más. Una regla `source:
+"/#servicios"` en `next.config.ts` compila y no se ejecuta jamás. Lo que sí
+llega de esas visitas es `/`, que se conserva.
+
+De las cuatro anclas, la única con destino propio en el sitio nuevo es
+`#proceso`, y ya funciona sin redirección: la sección Proceso de la home lleva
+`id="proceso"` desde el paso 7.
+
+**Sí hay una URL real que redirigir, y no estaba en este documento.** El
+`sitemap.xml` del sitio viejo declara dos: `/` y **`/brief.html`** — un
+formulario de brief que responde 200 y no lleva `noindex`, así que es
+indexable. Es la única que se queda sin destino al cortar:
+
+| URL vieja | Destino | Cómo |
+|---|---|---|
+| `/` | `/` | Se conserva |
+| `/brief.html` | `/contacto` | **301 en `next.config.ts`** ✅ montado |
+| `#servicios` · `#paquetes` · `#contacto` | — | No implementable: el fragmento no llega al servidor |
+| `#proceso` | `/#proceso` | Ya funciona: `id="proceso"` en la home |
 
 Procedimiento de cutover:
 
-1. Exportar de Search Console las URLs indexadas y las páginas con clics **antes** de cortar — aunque sea poco tráfico, es equity ganado.
-2. Mapear cada URL vieja a su equivalente y montar los **301 en `next.config.ts`**.
-3. **Conservar la misma propiedad de Search Console**, no crear una nueva.
-4. Reenviar el `sitemap.xml` nuevo y forzar reindexación de las páginas clave.
-5. Vigilar el reporte de cobertura 2-4 semanas por picos de 404.
+1. Exportar de Search Console las URLs indexadas y las páginas con clics **antes** de cortar — aunque sea poco tráfico, es equity ganado. Sirve además para confirmar si `/brief.html` acumuló algo.
+2. **Conservar la misma propiedad de Search Console**, no crear una nueva.
+3. Reenviar el `sitemap.xml` nuevo y forzar reindexación de las páginas clave.
+4. Vigilar el reporte de cobertura 2-4 semanas por picos de 404.
 
 El dominio ya tiene historial: **no se lanza sin esto.**
 
