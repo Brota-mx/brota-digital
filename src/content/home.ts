@@ -21,7 +21,7 @@ export const home = {
     eyebrow: "Sitios web · Marca · Automatización con IA",
     /**
      * Dos frases, dos bloques. Se revelan escalonados detrás de una máscara,
-     * en el mismo sentido en que crece el tallo. Si algún día son tres, el
+     * en el mismo sentido en que emergen. Si algún día son tres, el
      * componente no cambia: recorre el array.
      */
     titulo: ["Empieza donde estás.", "Crece sin cambiar de proveedor."],

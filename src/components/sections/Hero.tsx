@@ -7,29 +7,20 @@ import { home } from "@/content/home";
 /**
  * Hero (blueprint §4, efecto #2: «revelado desde el suelo»).
  *
- * ATADO AL TRAZO, QUE ES LA MITAD DEL EFECTO
+ * ⚠️ EL TRAZO QUE ATABA ESTO YA NO EXISTE (11-ago)
  *
- * El blueprint pide explícitamente que esto NO sea un reveal suelto. El amarre
- * es literal, no temático:
+ * Aquí vivía `.hero-brote`, un segundo trazo de 1px que decía continuar al
+ * tallo de `page.tsx`. En escritorio se veían los dos a la vez, separados ~5px,
+ * y el porqué está escrito en `page.tsx`. Se borraron los dos.
  *
- * - El brote del hero es el MISMO trazo capilar de 1px en --coral que el tallo
- *   de la página, en la MISMA columna (el canalón del `px-6`) y creciendo en el
- *   MISMO sentido, de abajo hacia arriba.
- * - Y ocupa el hueco que el tallo deja: `TalloSVG` está atado a `scroll(root
- *   block)`, así que arriba del todo —justo donde se ve el hero— su trazo aún
- *   no ha brotado y el canalón está vacío. El brote crece ahí al cargar; el
- *   tallo lo continúa hacia arriba en cuanto se hace scroll. Es una sola línea
- *   contada en dos tiempos.
- * - Las frases del titular emergen detrás de la máscara en ese mismo sentido y
- *   escalonadas, como si el brote las fuera destapando al pasar.
+ * De la coreografía original queda lo que no dependía del trazo: las frases del
+ * titular emergen escalonadas detrás de la máscara, de abajo hacia arriba.
  *
  * MÁSCARA CON `overflow-hidden`, NO CON `clip-path`
  *
  * El blueprint dice «clip-path + translateY». La máscara es un
  * `overflow-hidden` en el envoltorio: mismo resultado visual con UNA propiedad
- * animada en vez de dos, y `transform` es de las que sí compone el navegador
- * (que es exactamente la salida que el paso 6 dejó anotada cuando midió que el
- * `stroke-dashoffset` del tallo no compone y cuesta ~4 ms de fotograma).
+ * animada en vez de dos, y `transform` es de las que sí compone el navegador.
  *
  * El `pb`/`-mb` de 0.14em no es decorativo: sin él la máscara le corta la cola
  * a las letras con descendente («p» de «Empieza») a 80px.
@@ -44,16 +35,6 @@ export function Hero() {
   return (
     <section>
       <div className="relative mx-auto grid w-full max-w-[1160px] gap-x-16 gap-y-12 px-6 pt-[clamp(64px,11vw,120px)] pb-[clamp(80px,10vw,140px)] lg:grid-cols-[55fr_45fr]">
-        {/* El brote: 1px de --coral creciendo desde el suelo. `left-3` son los
-            12px que quedan a la mitad del canalón del `px-6`, que es
-            exactamente la columna por la que el tallo de la página baja
-            (`TalloSVG` en `page.tsx`, alineado a la misma caja de 1160px).
-            Ahí --coral no toca texto: el contenido empieza a los 24px. */}
-        <div
-          aria-hidden="true"
-          className="hero-brote pointer-events-none absolute top-[38%] bottom-0 left-3 w-px bg-coral"
-        />
-
         <div>
           <Eyebrow className="hero-entrada text-gray">{eyebrow}</Eyebrow>
 

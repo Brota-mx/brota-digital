@@ -22,9 +22,7 @@ import { site } from "@/content/site";
  * lo pondría en todas las páginas.
  *
  * SIN MOVIMIENTO. Es la página a la que se llega por error: lo único que
- * importa es leer qué pasó y salir. El tallo tampoco: es la firma de la home
- * (§4) y aquí solo sería el efecto más caro del sitio pagado por una página
- * que nadie quería ver.
+ * importa es leer qué pasó y salir.
  */
 export default function NotFound() {
   const { eyebrow, titulo, entrada, cta, destinos } = noEncontrado;

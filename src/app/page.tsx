@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 
-import { TalloSVG } from "@/components/layout/TalloSVG";
 import { Casos } from "@/components/sections/Casos";
 import { CTA } from "@/components/sections/CTA";
 import { Escalera } from "@/components/sections/Escalera";
@@ -21,30 +20,27 @@ export const metadata: Metadata = {
  * clasificas y hasta dónde llega (Escalera) → por qué creerlo (Casos) → cómo
  * se trabaja (Proceso) → qué hacer (CTA).
  *
- * EL TALLO ENHEBRA LA PÁGINA
+ * ⚠️ AQUÍ VIVÍA EL TALLO, Y SE BORRÓ A PROPÓSITO (11-ago)
  *
- * `TalloSVG` estaba en `/sistema` desde el paso 6 y aquí ocupa su sitio real:
- * un solo trazo capilar que baja por el canalón de la rejilla y cose las cinco
- * secciones, creciendo con el avance del documento (`scroll(root block)`). El
- * envoltorio comparte la caja de 1160px de las secciones para que el trazo caiga
- * exactamente en el canalón —y no bajo el texto, que con --coral está prohibido—
- * a cualquier ancho de ventana.
+ * `TalloSVG` era el efecto #1 del blueprint §4: un trazo capilar por el canalón
+ * de la rejilla que cosía las secciones creciendo con el scroll, y el hero lo
+ * continuaba con un segundo trazo propio (`.hero-brote`).
  *
- * En el hero lo continúa el brote (`Hero.tsx`) y en la escalera se acuesta y se
- * vuelve el suelo del que crecen los peldaños (`Escalera.tsx`). Es una sola
- * línea contada en tres tiempos, que es lo que pide el blueprint §4 para el
- * efecto #1: «conecta secciones y enlaza los 4 peldaños».
+ * En escritorio se veían LOS DOS a la vez en el hero, separados ~5px: el brote
+ * clavado en x=12 y el tallo pasando por x≈17 a esa altura. No era un desajuste
+ * de CSS que se pudiera calibrar: el path oscila entre x=4 y x=20 dentro de un
+ * viewBox de 24 de ancho, y en escritorio ese SVG se estira a ~4000px de alto
+ * conservando los 24, así que la curva se vuelve una vertical torcida y por
+ * dónde cruza el hero depende de cuánto mida la página.
+ *
+ * `Hero.tsx` argumentaba largo y bien que eran «una sola línea contada en dos
+ * tiempos» y que iban «en la MISMA columna». Nadie lo midió hasta que se vio en
+ * pantalla. Si algún día vuelve el trazo: medir la x de los dos a varios anchos
+ * ANTES de escribir el porqué.
  */
 export default function Home() {
   return (
     <main className="relative flex-1">
-      {/* `inset-0 mx-auto max-w-[1160px]`: el centrado automático sí funciona
-          en un elemento absoluto cuando izquierda y derecha están fijadas, y
-          es lo que alinea el trazo con el canalón de las secciones. */}
-      <div className="pointer-events-none absolute inset-0 mx-auto max-w-[1160px]">
-        <TalloSVG className="left-0" />
-      </div>
-
       <Hero />
       <Escalera />
       <Casos />

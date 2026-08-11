@@ -32,8 +32,8 @@
   /* — Acento cálido ----------------------------------------------------- */
 
   /* ❌ PROHIBIDO COMO TEXTO — 3.3:1, reprueba AA a cualquier tamaño.
-     Es color de superficie, relleno decorativo, borde y trazo (el tallo
-     del efecto #1 vive aquí). Con texto blanco encima da 3.5:1: tampoco.
+     Es color de superficie, relleno decorativo, borde y regla capilar (el
+     suelo de la escalera vive aquí). Con texto blanco encima da 3.5:1: tampoco.
      Si necesitas coral y hay letras de por medio, usa --coral-ink. */
   --coral: #e85d3a;
 
@@ -145,32 +145,14 @@
    Va en `@layer components` para que cualquier utilidad de Tailwind en el JSX
    le siga ganando (la lección del paso 3).
 
-   ⚠️ PRESUPUESTO. Medido en el paso 6 a 375px con la CPU frenada 6×: el tallo
-   animado sube la mediana de fotograma de 12.5 a 16.7 ms. `animation-timeline:
-   scroll()` NO saca el efecto del hilo principal cuando la propiedad no es
-   componible, y `stroke-dashoffset` no lo es. Por eso todo lo que se agregó en
-   el paso 7 anima únicamente `transform` y `opacity`, que sí componen, y todo
-   salvo el marquee es de un solo disparo.
+   ⚠️ PRESUPUESTO. Aquí vivía el efecto más caro del sitio, el tallo, y ya no
+   está (11-ago). Lo que dejó medido en el paso 6 sigue valiendo para lo que
+   venga: `animation-timeline: scroll()` NO saca un efecto del hilo principal
+   cuando la propiedad no es componible, y `stroke-dashoffset` no lo es —animarlo
+   subía la mediana de fotograma de 12.5 a 16.7 ms a 375px con la CPU 6×. Por eso
+   todo lo que queda anima únicamente `transform` y `opacity`, que sí componen, y
+   todo salvo el marquee es de un solo disparo.
    -------------------------------------------------------------------------- */
-@keyframes brotar {
-  from {
-    stroke-dashoffset: 1;
-  }
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
-/* El brote del hero: el mismo trazo de 1px, creciendo desde el suelo. */
-@keyframes brotar-tallo {
-  from {
-    transform: scaleY(0);
-  }
-  to {
-    transform: scaleY(1);
-  }
-}
-
 /* Revelado desde el suelo: la frase emerge detrás de la máscara del
    envoltorio (`overflow-hidden`), no aparece de la nada. */
 @keyframes emerger {
@@ -210,43 +192,13 @@
 }
 
 @layer components {
-  .tallo-trazo {
-    /* Estado base = trazo COMPLETO. Es lo que se ve sin soporte de scroll
-       timelines y sin JavaScript. Un efecto decorativo no degrada a invisible. */
-    stroke-dashoffset: 0;
-
-    /* Mandato técnico del blueprint §4: `animation-timeline: scroll()` donde
-       haya soporte. `scroll(root block)` = el avance vertical del documento.
-       `both` conserva el fotograma inicial: arriba del todo, el tallo no ha
-       brotado. Los navegadores que no entran aquí se quedan con el estado base
-       de arriba —trazo completo y quieto— y no llevan respaldo en JavaScript:
-       el porqué está en `components/layout/TalloSVG.tsx`. */
-    @supports (animation-timeline: scroll()) {
-      animation: brotar linear both;
-      animation-timeline: scroll(root block);
-    }
-
-    /* La guarda. Apaga el movimiento SIN perder el dibujo: el tallo queda
-       entero, que es su estado final. Va después del @supports a propósito —
-       gana por orden. */
-    @media (prefers-reduced-motion: reduce) {
-      animation: none;
-      stroke-dashoffset: 0;
-    }
-  }
-
   /* ── Hero: una sola entrada, de un solo disparo (blueprint §4, efecto #2) ──
-     Cuatro piezas coreografiadas, no cuatro efectos independientes: el brote
-     crece desde el suelo y las frases van emergiendo detrás de él. Al segundo
-     ya no hay nada moviéndose en la vista.
+     Aquí había una cuarta pieza, `.hero-brote`, y con ella el `.tallo-trazo`
+     del efecto #1. Se borraron el 11-ago: en escritorio los dos trazos se veían
+     a la vez separados ~5px. El porqué está en `app/page.tsx`.
 
      `both` conserva el primer fotograma durante el retraso: sin él, el
      titular parpadearía visible antes de esconderse. */
-  .hero-brote {
-    transform-origin: bottom;
-    animation: brotar-tallo 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
-  }
-
   .hero-linea {
     /* El retraso lo pone el JSX por índice (`--retraso`), no un `nth-child`:
        si el titular pasa de dos frases a tres, no hay CSS que tocar. */
@@ -287,11 +239,10 @@
      Va al final del layer a propósito: gana por orden de cascada sobre los
      `@supports` de arriba. Apaga el movimiento y deja cada pieza en su estado
      FINAL —nunca en el inicial—, que es lo que significa «sin perder
-     contenido»: titular a la vista, brote crecido, regla con su ancho, tira
-     legible. Los contadores hacen lo suyo en `Contador.tsx`, porque su estado
-     final es texto y el CSS no lo puede escribir. */
+     contenido»: titular a la vista, regla con su ancho, tira legible. Los
+     contadores hacen lo suyo en `Contador.tsx`, porque su estado final es texto
+     y el CSS no lo puede escribir. */
   @media (prefers-reduced-motion: reduce) {
-    .hero-brote,
     .hero-linea,
     .hero-entrada,
     .metrica-regla,
