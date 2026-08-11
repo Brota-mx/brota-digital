@@ -102,7 +102,19 @@ detiene y se lo dice a Jesús.
 Pasos 1 a 10 del orden de construcción completados: scaffold + tokens · logo · layout base
 y SEO técnico · contenido tipado · sistema de componentes · el trazo que brota · la Home ·
 `/servicios` + FAQ · `/casos` + las 3 páginas de caso · `/contacto` + el formulario de 6
-capas. Y del **paso 11, solo el 404**; el **paso 12 (cierre SEO)** completo.
+capas. Y del **paso 11, solo el 404**; el **paso 12 (cierre SEO)** y el **paso 13 (cierre de
+seguridad)** completos.
+
+⚠️ **La CSP y las cinco cabeceras viven en `next.config.ts` y se sirven en TODA respuesta**
+—páginas, 404, estáticos y `/api/contacto`—. Dos cosas antes de tocarlas:
+
+- **`script-src` lleva `'unsafe-inline'` y no es un descuido.** El porqué —y por qué los
+  hashes no son implementables y el nonce costaría el SSG entero— está escrito en el propio
+  archivo. Endurecerla sin leer eso rompe la hidratación de Next.
+- **El JSON-LD de los pasos 3 y 12 va en `<script>` en línea.** Si la política se aprieta,
+  ese marcado desaparece **sin que nada falle en rojo**: el build sale verde, la página se ve
+  igual y el marcado no está. Se comprueba cargando las rutas y contando los
+  `script[type="application/ld+json"]`, nunca leyendo la política.
 
 ⚠️ **`/aviso-de-privacidad` sigue sin construirse, y es a propósito.** Su borrador está en
 las notas internas del proyecto, sin cerrar y con huecos por llenar; publicarlo así sería
