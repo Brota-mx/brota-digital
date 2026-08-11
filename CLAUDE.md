@@ -90,6 +90,16 @@ Upstash rate-limit + Turnstile + Resend (fail-closed)
     cifras que el sitio nunca enseña, y justo en la sección que promete que las cifras se
     pueden ir a verificar. El componente estaba bien —sin JS, con `reduce` y al terminar da
     94/2/52, los tres comprobados—; lo que estaba mal era el momento de disparar la cámara.
+19. **Las cabeceras se leen con `cache: "no-store"`, o se lee la respuesta guardada.** En la
+    verificación del paso 15, `strict-transport-security` «faltaba» en la home y estaba en
+    las otras siete rutas: la home venía del caché del navegador, que no conserva todas las
+    cabeceras. Con la lectura sin caché aparece idéntica. Un faltante en **una sola** ruta,
+    justo la que ya se había visitado, es el síntoma — y una cabecera que es configuración
+    global no puede faltar en una página sí y en siete no.
+20. **Una variable de entorno puede llegar definida y vacía, y `??` la deja pasar.** Por eso
+    `content/site.ts` usa `||`. Copiar `.env.example` a `.env.local` produce exactamente ese
+    estado, y crear la variable en Vercel antes de tener el valor, también: el build muere
+    en `new URL()` de `layout.tsx` señalando al layout en vez de a la configuración.
 
 ## Flujo de cada paso del build
 
@@ -108,18 +118,36 @@ El sitio tiene requisitos legales y de contenido pendientes antes de publicarse
 (blueprint §11). **La lista está en `Plan - Brota Digital`, en el vault** — no aquí:
 este repositorio es público y esos pendientes son internos.
 
-**Hasta que esa lista esté cerrada: no se despliega a Vercel ni se apunta el dominio.**
-Construir sí; publicar no. Si una sesión llega al paso 15 y la lista sigue abierta, se
-detiene y se lo dice a Jesús.
+**El dominio sigue sin apuntarse.** Lo que cambió el 11-ago es que el sitio ya vive en
+Vercel y su alias de producción es público, con la lista todavía abierta: fue una decisión
+explícita de Jesús, tomada después de que la sesión se detuviera y le enumerara qué queda
+expuesto. Una sesión que llegue aquí se sigue deteniendo y se lo dice; lo que no hace es
+volver a cerrarlo por su cuenta.
 
 ## Estado actual
 
 Pasos 1 a 10 del orden de construcción completados: scaffold + tokens · logo · layout base
 y SEO técnico · contenido tipado · sistema de componentes · el trazo que brota · la Home ·
 `/servicios` + FAQ · `/casos` + las 3 páginas de caso · `/contacto` + el formulario de 6
-capas. Y del **paso 11, solo el 404**; el **paso 12 (cierre SEO)**, el **paso 13 (cierre de
-seguridad)** y el **paso 14 (cierre de QA visual)** completos. Solo queda el **paso 15
-(deploy)**, y ese está bloqueado a propósito — ver «Bloqueantes» arriba.
+capas. Del **paso 11**, el 404 y el aviso de privacidad —este último construido pero
+apagado hasta que se llenen sus datos de identidad—; el **paso 12 (cierre SEO)**, el **paso
+13 (cierre de seguridad)** y el **paso 14 (cierre de QA visual)** completos. Y el **paso 15
+(deploy)**: el repo está importado en Vercel y `main` despliega solo.
+
+⚠️ **El alias de producción de Vercel no es el `.vercel.app` obvio, y confundirlos cuesta
+una conclusión entera.** `brota-digital.vercel.app` pertenece a otro proyecto —el namespace
+de `*.vercel.app` es global y el nombre ya estaba tomado—, así que el alias real lleva
+sufijo. Verificar contra el nombre supuesto en vez de contra los `domains` que devuelve la
+API da respuestas coherentes sobre el sitio equivocado. La lista buena sale de
+`get_project`, y la del deployment concreto de `list_deployments`.
+
+⚠️ **`ssoProtection: all_except_custom_domains` NO protege el alias de producción.** Exime
+los dominios propios *y* ese alias; lo que cubre son las URL de cada deployment y las
+previews. Leerlo como «todo cerrado» es fácil porque la URL del deployment sí exige bypass
+y sí manda `x-robots-tag: noindex` — dos señales tranquilizadoras que no dicen nada del
+alias. **La única comprobación que vale es pedir el alias sin sesión** y mirar el estado,
+el encabezado `x-robots-tag` y `robots.txt`. Es la regla 15 otra vez: el instrumento
+contestó con la verdad de otra URL.
 
 ⚠️ **El smoke de `e2e/` no prueba que el sitio se vea bien: prueba lo que se rompe sin
 fallar en rojo.** JSON-LD en línea que una CSP puede borrar, cabeceras que son
