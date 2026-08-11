@@ -122,7 +122,6 @@ export const casos = [
 ] as const satisfies readonly { peldano: ServicioId; [k: string]: unknown }[];
 
 export type Caso = (typeof casos)[number];
-export type CasoSlug = Caso["slug"];
 
 /**
  * Copy propio de `/casos` y de las tres páginas de caso (blueprint §3 y §6).

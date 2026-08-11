@@ -218,8 +218,9 @@
     /* Mandato técnico del blueprint §4: `animation-timeline: scroll()` donde
        haya soporte. `scroll(root block)` = el avance vertical del documento.
        `both` conserva el fotograma inicial: arriba del todo, el tallo no ha
-       brotado. El respaldo de listener + rAF, para los navegadores que no
-       entran aquí, está en `components/layout/TalloSVG.tsx`. */
+       brotado. Los navegadores que no entran aquí se quedan con el estado base
+       de arriba —trazo completo y quieto— y no llevan respaldo en JavaScript:
+       el porqué está en `components/layout/TalloSVG.tsx`. */
     @supports (animation-timeline: scroll()) {
       animation: brotar linear both;
       animation-timeline: scroll(root block);

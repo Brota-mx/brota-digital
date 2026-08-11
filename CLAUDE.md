@@ -15,7 +15,14 @@ es la demostración del producto y se sostiene con un estándar más alto, no m�
 ## Stack
 
 Next.js 16 (App Router, SSG) · TypeScript strict · Tailwind v4 · pnpm · monolingüe ES
-Formulario: RHF + Zod + honeypot + Upstash rate-limit + Turnstile + Resend (fail-closed)
+Formulario: validación nativa del navegador + Zod **en el servidor** + honeypot +
+Upstash rate-limit + Turnstile + Resend (fail-closed)
+
+> El blueprint §2 pide React Hook Form. Se quitó en la auditoría ponytail: validaba
+> en el cliente con el mismo esquema que el endpoint, y el endpoint ya devuelve un
+> mensaje por campo que el formulario ya sabía pintar. Ahora el navegador atrapa lo
+> obvio con `required`/`type`/`maxLength` y el servidor sigue siendo la autoridad.
+> Efecto secundario que era el objetivo: **Zod ya no viaja al navegador**.
 
 > El blueprint dice "Next.js 15" porque era la versión vigente al redactarlo.
 > El scaffold se hizo con 16.3, que es lo que `next@latest` resuelve hoy. Nada
@@ -35,6 +42,9 @@ Formulario: RHF + Zod + honeypot + Upstash rate-limit + Turnstile + Resend (fail
    si un color no está en `globals.css`, no existe.
 2. Todo texto visible sale de `content/` — nada hardcodeado en JSX.
 3. Fase de UI terminada = screenshots **móvil primero** + desktop + `/impeccable` pasado.
+   Las capturas se toman en `docs/qa/`, que está **gitignored**, y de ahí se archivan
+   en el vault. Se toman igual que siempre; lo que no se hace es versionarlas: eran
+   118 PNG y 42 MB contra ~4 000 líneas de código.
 4. **Contraste AA en todo texto.** Los acentos cálidos son superficie, no letra:
    - `--coral` (3.3:1) y `--gold` (1.5:1) **jamás tocan texto**, a ningún tamaño.
    - `--coral-ink` es el único acento que puede ser texto: 4.5:1 sobre crema,
@@ -98,6 +108,27 @@ capas. Sigue el paso 11 (`/aviso-de-privacidad` + 404).
 CTA, Marquee) y `components/layout/TalloSVG.tsx` el efecto firma, que ahora vive en la home
 enhebrando las secciones. `/sistema` **se borró** en el paso 7: era el banco de pruebas de
 los componentes y las secciones reales lo dejaron sin trabajo.
+
+⚠️ **Una auditoría ponytail (11-ago) borró todo lo que no se usaba.** Lo que hay que saber
+antes de "restaurarlo" por costumbre:
+
+- **`ui/Card.tsx` ya no existe.** Su único consumidor en todo el sitio era `Escalera`, y su
+  única variante la usaba un solo peldaño. Las clases viven ahí ahora. Si una segunda
+  sección necesita la misma superficie, se vuelve a extraer *ese día*, sabiendo qué
+  comparten las dos.
+- **`TalloSVG` ya no lleva `"use client"`.** Tenía un respaldo de `scroll` + rAF para
+  Firefox y Safari; sin él, esos navegadores ven el trazo completo y quieto, que es el
+  estado que el propio archivo ya declaraba aceptable. Y era la versión cara del efecto:
+  la que sí corre en el hilo principal en cada fotograma.
+- **`Metrica` ya no tiene `invertida`**, porque ninguno de sus tres llamadores la pasaba.
+- **`LIMITES` se mudó a `content/contacto.ts`.** No es capricho de orden: leerlo desde
+  `lib/contacto.ts` obligaría al formulario a importar el archivo que importa Zod, y
+  arrastraría Zod entero al navegador para leer seis números.
+- **En `route.ts` no hay `.slice()` tras el saneo.** Zod ya cortó por `LIMITES` y las tres
+  funciones de saneo solo pueden acortar. Volver a ponerlos no protege de nada.
+- Los SVG de `public/logo/` salieron del repo (nadie los cargaba: los paths están
+  inlineados en `Wordmark.tsx`, `opengraph-image.tsx` e `icon.svg`). La salida del
+  generador vive en `material/logo-tooling/salida/`, gitignored.
 
 ⚠️ **El presupuesto de movimiento es más chico de lo que sugiere el blueprint, y el caro
 es el tallo.** `animation-timeline: scroll()` **no** saca el efecto del hilo principal
