@@ -89,10 +89,10 @@ detiene y se lo dice a Jesús.
 
 ## Estado actual
 
-Pasos 1 a 9 del orden de construcción completados: scaffold + tokens · logo · layout base
+Pasos 1 a 10 del orden de construcción completados: scaffold + tokens · logo · layout base
 y SEO técnico · contenido tipado · sistema de componentes · el trazo que brota · la Home ·
-`/servicios` + FAQ · `/casos` + las 3 páginas de caso. Sigue el paso 10 (`/contacto` +
-formulario de 6 capas).
+`/servicios` + FAQ · `/casos` + las 3 páginas de caso · `/contacto` + el formulario de 6
+capas. Sigue el paso 11 (`/aviso-de-privacidad` + 404).
 
 `components/sections/` tiene las seis secciones de la home (Hero, Escalera, Casos, Proceso,
 CTA, Marquee) y `components/layout/TalloSVG.tsx` el efecto firma, que ahora vive en la home
@@ -124,8 +124,33 @@ sustituyó `IntersectionObserver` por un stub, y eso apaga también el prefetch 
 contraste AA de `--coral-ink`. El grano se reconstruyó para que solo aclare; el porqué,
 con los números, está en `components/ui/Grano.tsx`.
 
-De la navegación solo queda `/contacto` en 404, hasta el paso 10. Es el orden del
-blueprint, no un descuido: se prefirió eso a sembrar placeholders.
+La navegación ya no tiene ningún 404. El único enlace que apunta a una ruta inexistente es
+el del aviso de privacidad —footer y formulario—, y llega en el paso 11.
+
+⚠️ **El endpoint del formulario no lleva ningún SDK: tres `fetch` y cero dependencias.**
+Resend, Upstash y Turnstile entran por su API REST. El blueprint §2 nombra tres *servicios*,
+no tres paquetes, y cada uno es una petición de diez líneas (regla 10). Antes de sumar un
+SDK «para simplificar», leer el porqué en `app/api/contacto/route.ts`.
+
+⚠️ **El widget de Turnstile impone 300 px y no encoge.** A 320 px la columna solo tiene 272
+y el widget estiraba la rejilla entera: 19 px de desborde en el documento. Se resuelve
+pidiendo `size: "compact"` cuando el hueco medido es menor que 300. Lo cazó la medición a
+320, no la vista — a 375 no se nota.
+
+⚠️ **El foco dentro del widget vive en un shadow DOM cerrado.** Tres paradas de teclado
+seguidas que `:focus-visible` no alcanza y ninguna regla del sitio puede estilizar. Es de
+Cloudflare, no del sitio: se comprobó escribiendo la regla, viéndola no aplicar y borrándola.
+No volver a intentarlo.
+
+⚠️ **Un `<form>` sin `action` hace GET a la ruta actual.** Sin JavaScript eso pondría nombre,
+correo y teléfono en la barra de direcciones y en el historial. Por eso el formulario lleva
+`method="post"` y la página lo esconde entero con un `<noscript>`: sin JavaScript el token
+anti-robots no se puede emitir, así que el formulario no podría enviarse de todas formas.
+
+⚠️ **`transition-colors` de Tailwind v4 también anima `outline-color`.** Leer el anillo de
+foco justo después de un `Tab` devuelve un color intermedio y parece que la regla no aplica.
+Hay que dejar asentar la transición antes de medir — es la regla 15 otra vez, en otra
+propiedad.
 
 `/casos` y `/casos/[slug]` **no llevan capturas**, aunque el blueprint §4 defina su
 tratamiento y §3 las liste como contenido pendiente: entran cuando se cierren los
