@@ -37,12 +37,6 @@ export const home = {
     entrada:
       "Se empieza por el peldaño que corresponde al momento del negocio y se sube cuando toca. Nadie tiene que cambiar de agencia por haber crecido.",
     enlace: { label: "Ver los cuatro peldaños a detalle", href: "/servicios" },
-    /**
-     * En móvil los peldaños se recorren de lado. El aviso es visible —no solo
-     * para lectores de pantalla—: un carrusel sin indicio de que hay más a la
-     * derecha es un carrusel que nadie desliza.
-     */
-    ayudaScroll: "Desliza para ver los cuatro peldaños",
   },
 
   casos: {
