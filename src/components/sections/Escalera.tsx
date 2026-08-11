@@ -15,22 +15,46 @@ import { servicios } from "@/content/servicios";
  * El blueprint pide que las tarjetas escalen 100% → 116% → 134% → 156%. Aquí
  * eso es una altura mínima creciente y nada más: cero JavaScript, cero
  * movimiento, cero presupuesto de fotograma gastado. Con las cuatro alineadas
- * por la base, sus reglas capilares superiores dibujan los peldaños — la
- * silueta ES el gráfico. Ecosistema además invierte a negro, porque es el
- * salto de escala, no un color más.
+ * por la base, la silueta ES el gráfico. Ecosistema además invierte a negro,
+ * porque es el salto de escala, no un color más.
  *
- * EN MÓVIL VA DE LADO, Y NO ES UN CAPRICHO
+ * ⚠️ LAS TRES PRIMERAS LLEVAN SUPERFICIE, Y ES LO QUE HACE QUE LA ESCALERA EXISTA
  *
- * Apilada verticalmente a 375px nunca se ven dos tarjetas juntas y la
- * comparación de alturas —que es el argumento entero del efecto— desaparece
- * justo en el dispositivo por donde entra la mayoría del tráfico. Por eso
- * `scroll-snap` horizontal con la siguiente asomando (`w-[78%]`), que es
- * también el indicio de que hay más a la derecha.
+ * Al principio eran transparentes, con solo la regla capilar de 1px arriba, y
+ * el efecto no funcionaba: medido en la home, entre el 49% y el 57% de cada
+ * tarjeta era aire vacío colgando de una línea al 15% de negro. Una silueta
+ * hecha de tres rayitas casi invisibles no es una silueta — la única que se
+ * leía era Ecosistema, porque su fondo negro sí tiene cuerpo, y por eso las
+ * otras tres parecían huecos de carga en vez de peldaños.
  *
- * Sin `tabIndex` en el contenedor a propósito: cada peldaño lleva su enlace, y
- * al tabular hasta él el navegador desplaza el carrusel solo. Un `tabindex` en
- * el contenedor añadiría una parada de teclado que en escritorio —donde esto
- * es una rejilla y no scrollea— no haría absolutamente nada.
+ * `--cream-2` es el token de «superficie elevada» y este es exactamente su
+ * trabajo. La regla capilar se conserva encima: el lenguaje editorial del
+ * blueprint (reglas capilares en vez de bordes de caja) sigue ahí, pero ahora
+ * delimita una superficie en lugar de flotar sobre el lienzo.
+ *
+ * ⚠️ Y OBLIGA A VIGILAR EL CONTRASTE. `--gray` sobre `--cream-2` da 4.65:1
+ * contra los 5.1:1 que da sobre `--cream`: sigue pasando AA, pero con menos
+ * margen. Es la misma frontera donde `--coral-ink` ya reprueba (4.13:1), así
+ * que en estas tarjetas el acento no toca letra y la jerarquía se hace con
+ * tamaño y peso.
+ *
+ * El 4.65 sale de los colores computados de los dos elementos, NO de muestrear
+ * los píxeles pintados: no incluye el grano de papel. El grano solo aclara
+ * (ver `ui/Grano.tsx`), así que sobre fondo claro solo puede subir esa cifra —
+ * pero si algún día el grano vuelve a oscurecer, este número se cae y hay que
+ * remedirlo con muestreo real.
+ *
+ * EN MÓVIL SE APILAN
+ *
+ * Iban en carrusel horizontal con la siguiente asomando, para poder comparar
+ * alturas en el dispositivo por donde entra la mayoría del tráfico. No
+ * funcionaba: a 375px solo cabe una tarjeta, así que **no hay nada con qué
+ * comparar** — el argumento entero del efecto desaparecía igual, y encima la
+ * tarjeta cortada del borde derecho se leía como un error de maquetación.
+ *
+ * Apiladas y sin altura mínima, cada peldaño se lee completo y el vacío se
+ * acaba. La escalera es un efecto de escritorio: donde caben las cuatro juntas
+ * y la comparación es posible.
  *
  * EL SUELO
  *
@@ -42,18 +66,23 @@ import { servicios } from "@/content/servicios";
  * texto.
  */
 
-// 100% · 116% · 134% · 156% del blueprint, sobre una base de 260px en móvil y
-// 300px en escritorio. Es altura MÍNIMA: si un peldaño necesita más, crece, y
-// la progresión se mantiene porque las cuatro comparten base.
+// 100% · 116% · 134% · 156% del blueprint, sobre una base de 300px. Es altura
+// MÍNIMA: si un peldaño necesita más, crece, y la progresión se mantiene porque
+// las cuatro comparten base.
+//
+// Solo desde `md`. En móvil las tarjetas van apiladas y a su altura natural: la
+// altura mínima ahí no dibuja ninguna escalera —no hay dos tarjetas a la vista
+// que comparar— y lo único que produce es el vacío que hacía ilegible la
+// sección.
 const alturas = [
-  "min-h-[260px] md:min-h-[300px]",
-  "min-h-[302px] md:min-h-[348px]",
-  "min-h-[348px] md:min-h-[402px]",
-  "min-h-[406px] md:min-h-[468px]",
+  "md:min-h-[300px]",
+  "md:min-h-[348px]",
+  "md:min-h-[402px]",
+  "md:min-h-[468px]",
 ];
 
 export function Escalera() {
-  const { eyebrow, titulo, entrada, enlace, ayudaScroll } = home.escalera;
+  const { eyebrow, titulo, entrada, enlace } = home.escalera;
 
   return (
     <section
@@ -73,24 +102,16 @@ export function Escalera() {
         <p className="max-w-[46ch] text-gray lg:pb-2">{entrada}</p>
       </div>
 
-      <p className="mt-10 text-sm text-gray md:hidden">{ayudaScroll}</p>
-
-      <ul className="mt-4 flex snap-x snap-mandatory items-end gap-4 overflow-x-auto md:mt-14 md:grid md:grid-cols-4 md:gap-6 md:overflow-visible">
+      <ul className="mt-10 grid gap-4 md:mt-14 md:grid-cols-4 md:items-end md:gap-6">
         {servicios.map((servicio, i) => (
-          <li
-            key={servicio.id}
-            className={`w-[78%] shrink-0 snap-start md:w-auto ${alturas[i]} flex`}
-          >
+          <li key={servicio.id} className={`flex ${alturas[i]}`}>
             <Card
               invertida={i === servicios.length - 1}
-              // `justify-end` cuelga el contenido de la base: el aire de arriba
-              // es lo que hace visible el peldaño. El `pb-6` de las tres
-              // primeras despega el texto del suelo coral —sin él, la regla se
-              // lee como el subrayado del precio—; la invertida ya trae su
-              // propio relleno.
-              className={`w-full justify-end ${
-                i === servicios.length - 1 ? "" : "pb-6"
-              }`}
+              // `md:justify-end` cuelga el contenido de la base: el aire de
+              // arriba es lo que hace visible el peldaño. En móvil no aplica —
+              // sin altura mínima no hay aire que repartir, y el contenido se
+              // lee de arriba abajo como cualquier tarjeta.
+              className="w-full md:justify-end"
             >
               <h3 className="text-[clamp(24px,3vw,34px)]">{servicio.nombre}</h3>
               <p
