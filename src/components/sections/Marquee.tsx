@@ -52,12 +52,10 @@ export function Marquee() {
     <section
       aria-label={palabras.join(", ")}
       tabIndex={0}
-      // `bg-cream` no es decorativo: es la única sección cuyo texto se desplaza
-      // a lo ancho, así que las palabras pasan por el canalón por donde baja el
-      // tallo. Un fondo opaco lo tapa aquí —el tallo vive en `-z-10`— y evita
-      // que --coral quede detrás de una letra, que está prohibido a cualquier
-      // tamaño. Es el mismo comportamiento que ya tenían el pie y las tarjetas
-      // invertidas con el grano.
+      // `bg-cream` es la superficie propia de la sección: su texto se desplaza a
+      // lo ancho y necesita un fondo opaco que no deje pasar nada por detrás de
+      // las letras. Es el mismo comportamiento que ya tenían el pie y las
+      // tarjetas invertidas con el grano.
       className="marquee overflow-hidden border-y border-black/15 bg-cream py-5"
     >
       <div className="marquee-pista flex w-max">

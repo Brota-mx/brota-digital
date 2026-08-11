@@ -57,10 +57,10 @@ import { servicios } from "@/content/servicios";
  *
  * EL SUELO
  *
- * La regla capilar de --coral bajo las cuatro es el mismo trazo que baja por el
- * canalón: al llegar aquí se acuesta y se vuelve el suelo del que brotan los
- * peldaños. Es lo que enhebra la escalera con el tallo (blueprint §4, efecto
- * #1: «conecta secciones y enlaza los 4 peldaños»). Va debajo de las tarjetas y
+ * La regla capilar de --coral bajo las cuatro es el suelo del que brotan los
+ * peldaños. Era la parte horizontal del trazo del efecto #1, que bajaba por el
+ * canalón y al llegar aquí se acostaba; ese trazo se borró el 11-ago y el suelo
+ * se queda, porque solo el suelo ya ordena la escalera. Va debajo de las tarjetas y
  * nunca detrás de una letra: --coral está prohibido como texto y como fondo de
  * texto.
  *
@@ -156,9 +156,8 @@ export function Escalera() {
       </ul>
 
       {/* El suelo. Pegado a la base de las cuatro tarjetas y con `-mx-6` para
-          que llegue hasta el canalón: ahí es donde se cruza con el tallo que
-          baja por la página, que es lo que hace que se lean como una sola
-          línea y no como dos adornos. */}
+          que llegue hasta el canalón, que es donde empiezan y acaban todas las
+          reglas horizontales de la página. */}
       <div aria-hidden="true" className="-mx-6 h-px bg-coral" />
 
       <div className="mt-10">
