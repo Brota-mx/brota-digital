@@ -73,5 +73,5 @@ export const site = {
    * un caso nuevo entre al sitemap sin que haya que acordarse de escribirlo
    * dos veces.
    */
-  sitemap: ["/", "/servicios", "/casos"],
+  sitemap: ["/", "/servicios", "/casos", "/contacto"],
 } as const;
