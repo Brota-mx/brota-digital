@@ -48,6 +48,20 @@ Formulario: RHF + Zod + honeypot + Upstash rate-limit + Turnstile + Resend (fail
 10. `ponytail` aplica: solución mínima que funcione; cero dependencias que el BLUEPRINT no pida.
 11. `material/` está gitignored y se queda así. Contiene el brief de ingesta con
     precios y condiciones comerciales; el repo es público.
+12. **Objetivo táctil 44×44 en ancho Y alto.** `min-h-11` **y** `min-w-11`. Ha fallado dos
+    veces —paso 3 en la nav, paso 9 en las migas de pan— y las dos por el ancho, porque el
+    alto es el que se escribe solo.
+13. Las reglas base de `globals.css` van **dentro de `@layer base`**. Fuera de capa, el CSS
+    gana contra **todas** las de Tailwind, incluida `utilities`, y deja de poderse anular
+    desde el JSX. Compila verde y solo se ve en la captura (paso 3).
+14. **Barrido de texto sobre todo lo versionado antes de cada push**, buscando pendientes
+    internos, condiciones comerciales o datos de terceros — **comentarios de código
+    incluidos**, que es donde menos se mira. El repo es público: lo que no iría en el sitio
+    tampoco va en un comentario. Se corre en cada push, no una vez.
+15. **Al verificar una transición, lee la propiedad `scale`, no `transform`.** Tailwind v4
+    anima `scale`, así que `transform` devuelve `none` y parece roto cuando funciona. Y
+    ninguna herramienta cuenta como prueba si no se la ha visto fallar: el control tiene que
+    caer dentro del alcance de la regla que dice probar.
 
 ## Bloqueantes — construir sí, publicar no
 
