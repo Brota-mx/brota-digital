@@ -2,6 +2,7 @@ import type { CSSProperties } from "react";
 
 import { ButtonLink } from "@/components/ui/Button";
 import { Eyebrow } from "@/components/ui/Eyebrow";
+import { FondoShader } from "@/components/ui/FondoShader";
 import { home } from "@/content/home";
 
 /**
@@ -33,7 +34,11 @@ export function Hero() {
   const { eyebrow, titulo, entrada, cta, ctaAlterno } = home.hero;
 
   return (
-    <section>
+    // `relative` sin `isolate`: el fondo va en `-z-20` y necesita compartir
+    // contexto de apilamiento con el grano (`-z-10`, fijo) para quedar debajo.
+    <section className="relative">
+      <FondoShader />
+
       <div className="relative mx-auto grid w-full max-w-[1160px] gap-x-16 gap-y-12 px-6 pt-[clamp(64px,11vw,120px)] pb-[clamp(80px,10vw,140px)] lg:grid-cols-[55fr_45fr]">
         <div>
           <Eyebrow className="hero-entrada text-gray">{eyebrow}</Eyebrow>
