@@ -42,17 +42,21 @@ export function Hero() {
     // layout porque es esta sección la que da las dos condiciones: hay
     // gradiente detrás, y ocupa la pantalla entera.
     //
-    // `100svh` y no `100vh`: `svh` es la altura del viewport CON las barras
-    // del navegador móvil a la vista, o sea la más chica. Con `100vh` el hero
-    // mide más que la pantalla en cuanto Safari o Chrome muestran su barra, y
-    // vuelve a asomar la siguiente sección — que es justo lo que se quita.
+    // `100dvh`, y aquí hay historia. Primero fue `100svh` —la altura del
+    // viewport con las barras del navegador a la vista, o sea la más chica—
+    // razonando que así nunca asomaría la sección siguiente. En Chromium
+    // llenaba exacto; en un iPhone real la sección se quedaba corta, porque
+    // `svh` es el suelo garantizado y no lo que la pantalla enseña en ese
+    // momento. `dvh` es la altura ACTUAL: llena siempre, con la barra dentro o
+    // fuera. El precio es que el hero se reajusta mientras el navegador
+    // encoge su barra, y en un hero por el que se pasa una vez eso no se ve.
     //
     // El header flota encima, así que la sección ocupa la pantalla completa
     // incluyendo la barra. En escritorio se suelta: un hero de alto fijo ahí
     // empuja la escalera fuera de vista sin ganar nada.
     <section
       data-hero-completo
-      className="relative flex min-h-[100svh] items-center lg:min-h-0"
+      className="relative flex min-h-[100dvh] items-center lg:min-h-0"
     >
       <FondoShader />
 

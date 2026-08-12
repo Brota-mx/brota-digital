@@ -124,9 +124,23 @@ export function Escalera() {
                 // arriba es lo que hace visible el peldaño. En móvil no aplica
                 // — sin altura mínima no hay aire que repartir, y el contenido
                 // se lee de arriba abajo como cualquier tarjeta.
-                className={`flex w-full flex-col md:justify-end ${
+                // `glass3d`: sombra proyectada + bisel interior. El relleno
+                // opaco se QUEDA — `bg-cream-2` y `bg-black` son lo que hace
+                // legible la silueta de la escalera, y quitarlo para que el
+                // desenfoque tuviera algo que hacer devolvería el problema que
+                // documenta el bloque de arriba (tarjetas que se leían como
+                // huecos de carga). Detrás de esta sección solo hay crema
+                // plano: el desenfoque no tiene variedad que mezclar y lo que
+                // se ve del vidrio es el relieve, no lo esmerilado.
+                className={`glass3d flex w-full flex-col md:justify-end ${
                   esUltimo
-                    ? "bg-black p-8 text-cream-2 sm:p-10"
+                    ? // `glass3d-invertido` apaga el grano del vidrio. El grano
+                      // solo aclara, y sobre esta tarjeta negra subía tanto la
+                      // luminancia del fondo que --cream-2 caía de 15.2:1 a
+                      // 2.90:1. Es la misma trampa de `ui/Grano.tsx` con el
+                      // signo cambiado: allí el problema era oscurecer el
+                      // crema, aquí es aclarar el negro.
+                      "glass3d-invertido bg-black p-8 text-cream-2 sm:p-10"
                     : "border-t border-black/15 bg-cream-2 p-6 sm:p-8"
                 }`}
               >
