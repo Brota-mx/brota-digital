@@ -36,10 +36,29 @@ export function Hero() {
   return (
     // `relative` sin `isolate`: el fondo va en `-z-20` y necesita compartir
     // contexto de apilamiento con el grano (`-z-10`, fijo) para quedar debajo.
-    <section className="relative">
+    //
+    // `data-hero-completo` es el gancho que `globals.css` busca con `:has()`
+    // para sacar el header del flujo y volverlo vidrio. Va aquí y no en el
+    // layout porque es esta sección la que da las dos condiciones: hay
+    // gradiente detrás, y ocupa la pantalla entera.
+    //
+    // `100svh` y no `100vh`: `svh` es la altura del viewport CON las barras
+    // del navegador móvil a la vista, o sea la más chica. Con `100vh` el hero
+    // mide más que la pantalla en cuanto Safari o Chrome muestran su barra, y
+    // vuelve a asomar la siguiente sección — que es justo lo que se quita.
+    //
+    // El header flota encima, así que la sección ocupa la pantalla completa
+    // incluyendo la barra. En escritorio se suelta: un hero de alto fijo ahí
+    // empuja la escalera fuera de vista sin ganar nada.
+    <section
+      data-hero-completo
+      className="relative flex min-h-[100svh] items-center lg:min-h-0"
+    >
       <FondoShader />
 
-      <div className="relative mx-auto grid w-full max-w-[1160px] gap-x-16 gap-y-12 px-6 pt-[clamp(64px,11vw,120px)] pb-[clamp(80px,10vw,140px)] lg:grid-cols-[55fr_45fr]">
+      {/* El `pt` sube de 64 a 112px: el header ya no ocupa lugar en el flujo y
+          sin ese aire la etiqueta quedaba debajo del vidrio. */}
+      <div className="relative mx-auto grid w-full max-w-[1160px] gap-x-16 gap-y-12 px-6 pt-[clamp(112px,13vw,140px)] pb-[clamp(80px,10vw,140px)] lg:grid-cols-[55fr_45fr]">
         <div>
           <Eyebrow className="hero-entrada text-gray">{eyebrow}</Eyebrow>
 

@@ -7,7 +7,11 @@ import { site } from "@/content/site";
 // hay menú hamburguesa que hidratar. Si la navegación crece, se replantea.
 export function Header() {
   return (
-    <header className="border-b border-black/10">
+    // La línea inferior ya no va aquí: la pone `globals.css`, porque en la
+    // home el header es de vidrio y la quita. Una utilidad de Tailwind en el
+    // JSX le gana a cualquier regla de `@layer components`, así que desde el
+    // CSS no habría forma de anularla (regla 13).
+    <header>
       {/* `flex-wrap`: por debajo de ~340px (un 320 real, o zoom 200% sobre
           640) el wordmark y los tres enlaces ya no caben en una fila y la
           página desbordaba en horizontal. Envuelto, la nav baja a un segundo
