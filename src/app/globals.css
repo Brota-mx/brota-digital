@@ -239,11 +239,52 @@
     z-index: 4;
   }
 
-  /* Vidrio sobre superficie invertida. El grano se apaga: solo aclara, y sobre
-     negro sube el fondo hasta tumbar el contraste del texto (--cream-2 pasa de
-     15.2:1 a 2.90:1, medido). Queda el relieve, que es lo que se ve igual. */
+  /* ── Los dos vidrios de la escalera ──────────────────────────────────────
+     El relleno lo pinta el `::before` con `--color-glass3d`, NO un
+     `background-color` en el elemento. La diferencia no es de estilo: el
+     `::before` es la misma capa que lleva el `backdrop-filter`, así que el
+     tinte se mezcla con el fondo ya desenfocado. Un `bg-*` opaco en el
+     elemento tapa el desenfoque y deja el efecto en pura sombra — que es
+     exactamente lo que se veía como cartón. */
+  .glass3d-crema {
+    --color-glass3d: color-mix(in oklab, var(--cream-2) 62%, transparent);
+  }
+
+  /* Vidrio ahumado del último peldaño. El grano se apaga: solo aclara, y sobre
+     una superficie oscura sube el fondo hasta tumbar el contraste del texto
+     (--cream-2 pasó de 15.2:1 a 2.90:1, medido). Queda el relieve. */
   .glass3d-invertido {
+    --color-glass3d: color-mix(in oklab, var(--black) 86%, transparent);
     --noise-glass3d: none;
+  }
+
+  /* ── El fondo que hace posible el vidrio de la escalera ──────────────────
+     Sin variedad detrás, `backdrop-filter` no tiene nada que mezclar y las
+     tarjetas se leen como cartón recortado. Esto es lo que desenfocan.
+
+     ESTÁTICO, y a propósito. El mismo efecto en WebGL costaría un segundo
+     canvas y el presupuesto ya está gastado en el hero (Lighthouse 47). Aquí
+     no hace falta movimiento: lo que el vidrio necesita es que el fondo NO sea
+     de un solo color. Tres gradientes radiales, cero animación, cero JS.
+
+     `-z-20` para quedar bajo el grano de papel (`-z-10`, fijo en el layout). */
+  .malla-escalera {
+    background-image:
+      radial-gradient(
+        60% 55% at 18% 22%,
+        color-mix(in oklab, var(--coral) 22%, transparent),
+        transparent 70%
+      ),
+      radial-gradient(
+        55% 60% at 82% 68%,
+        color-mix(in oklab, var(--gold) 45%, transparent),
+        transparent 70%
+      ),
+      radial-gradient(
+        70% 60% at 50% 45%,
+        color-mix(in oklab, var(--cream-2) 70%, transparent),
+        transparent 72%
+      );
   }
 
   /* ── El header de la home ────────────────────────────────────────────────
