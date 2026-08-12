@@ -48,6 +48,20 @@
 
   /* ❌ PROHIBIDO COMO TEXTO, sin excepción — 1.5:1. Decorativo y nada más. */
   --gold: #f5c97a;
+
+  /* — Textura ------------------------------------------------------------ */
+
+  /* Grano de papel como `data:` URI, para las superficies que lo pintan con
+     `background-image` (el vidrio). `ui/Grano.tsx` dibuja el mismo filtro en
+     SVG para el lienzo del sitio; los parámetros son los mismos a propósito.
+     Remoto no puede ir: la CSP es `img-src 'self' data:`.
+
+     ⚠️ SOLO ACLARA — la matriz fija RGB en blanco y conserva el alfa. Sobre
+     crema es inofensivo; sobre una superficie OSCURA sube la luminancia del
+     fondo y se lleva el contraste por delante. Medido en la tarjeta negra de
+     la escalera: --cream-2 sobre negro pasa de 15.2:1 a 2.90:1. En superficie
+     invertida este ruido no va (`.glass3d-invertido`). */
+  --noise-papel: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 /* --------------------------------------------------------------------------
@@ -192,31 +206,51 @@
 }
 
 @layer components {
-  /* ── Barra de vidrio (solo la home) ─────────────────────────────────────
-     Vidrio esmerilado sobre el gradiente del hero: desenfoque + tinte frío +
-     grano, con dos anillos de brillo interior que le dan el bisel.
+  /* ── Vidrio ──────────────────────────────────────────────────────────────
+     Desenfoque del fondo + tinte + grano, con dos anillos de brillo interior
+     que fingen el canto del vidrio atrapando la luz.
 
-     ⚠️ SOLO SIRVE SI HAY ALGO DETRÁS. `backdrop-filter` desenfoca lo que ya
-     está pintado debajo; sobre el crema plano de las otras siete rutas no
-     desenfocaría nada y quedaría una barra gris sin motivo. Por eso el header
-     flota sobre el hero SOLO en la home (`body:has(...)` más abajo).
+     DOS CONSUMIDORES, ASÍ QUE AHORA SÍ ES UNA CLASE. Nació pegada al header de
+     la home, con una nota que decía que se extraería el día que hubiera un
+     segundo caso. Ese día llegó con los peldaños de la escalera, y lo que
+     comparten es exactamente esto: la superficie. Lo que NO comparten son el
+     tinte y el brillo, así que esos dos salen a variables y cada consumidor
+     los sobrescribe.
+
+     ⚠️ EL DESENFOQUE SOLO HACE ALGO SI DETRÁS HAY VARIEDAD. `backdrop-filter`
+     desenfoca lo ya pintado debajo: sobre el gradiente del hero se nota mucho,
+     sobre el crema plano de la escalera no hay nada que mezclar y lo que se ve
+     es la sombra y el bisel. No está roto — es que el crema desenfocado sigue
+     siendo crema.
 
      El ruido va como `data:` URI y no como PNG de un tercero: la CSP del sitio
      es `img-src 'self' data:`, así que una textura remota —la de
      transparenttextures.com del CSS original— queda bloqueada y no se pinta.
      Es el mismo `feTurbulence` que `ui/Grano.tsx`, con la misma matriz que
-     solo aclara.
+     solo aclara. */
+  .glass3d {
+    /* Vidrio limpio: no tiñe ni oscurece, solo desenfoca y satura. El header
+       de la home sobrescribe estas dos más abajo. */
+    --filter-glass3d: blur(32px) brightness(1) saturate(2.5);
+    --color-glass3d: transparent;
+    --noise-glass3d: var(--noise-papel);
 
-     ⚠️ SIN CLASE `.glass3d` GENÉRICA, A PROPÓSITO. El CSS de origen la definía
-     como clase reutilizable y aquí tiene UN solo consumidor: el header de la
-     home. Una clase que nadie más puede llevar —porque el efecto depende de
-     que haya gradiente detrás— es una abstracción sin segundo caso. Es la
-     misma razón por la que `ui/Card.tsx` ya no existe. El día que una segunda
-     superficie necesite vidrio, se extrae ESE día, sabiendo qué comparten.
+    position: relative;
+    z-index: 4;
+  }
 
-     El gancho es `:has()`: la home marca su hero con `data-hero-completo` y
-     desde aquí se estiliza el header, que vive en el layout y no sabe en qué
-     ruta está. Cero JavaScript y cero prop atravesando tres componentes. */
+  /* Vidrio sobre superficie invertida. El grano se apaga: solo aclara, y sobre
+     negro sube el fondo hasta tumbar el contraste del texto (--cream-2 pasa de
+     15.2:1 a 2.90:1, medido). Queda el relieve, que es lo que se ve igual. */
+  .glass3d-invertido {
+    --noise-glass3d: none;
+  }
+
+  /* ── El header de la home ────────────────────────────────────────────────
+     No puede llevar la clase en el JSX: vive en el layout y no sabe en qué
+     ruta está. El gancho es `:has()` — la home marca su hero con
+     `data-hero-completo` y desde aquí se le prestan las reglas del vidrio.
+     Cero JavaScript y cero prop atravesando tres componentes. */
   header {
     border-bottom: 1px solid color-mix(in oklab, var(--black) 10%, transparent);
   }
@@ -224,21 +258,28 @@
   body:has([data-hero-completo]) header {
     /* Absoluto y no `sticky`: la barra pertenece al hero, se va con él al
        hacer scroll. Se posiciona contra el bloque contenedor inicial, que
-       empieza en el origen del documento — justo donde arranca el gradiente. */
+       empieza en el origen del documento — justo donde arranca el gradiente.
+       Sustituye al `position: relative` del vidrio, y por eso este bloque va
+       DESPUÉS: tener los dos hacía ganar al segundo y la barra no flotaba,
+       compilando igual de verde. */
     position: absolute;
     inset-inline: 0;
     top: 0;
     z-index: 50;
-    /* El canto del vidrio ya lo dibuja el bisel del `::after`. */
+    /* El canto ya lo dibuja el bisel del `::after`. */
     border-bottom: 0;
+    /* Más oscuro y más frío que el vidrio base: encima del gradiente cálido
+       hace falta contraste para que la barra se lea como una barra. */
     --filter-glass3d: blur(32px) brightness(0.85) saturate(2.5);
     --color-glass3d: hsl(189 80% 10% / 0.2);
-    --noise-glass3d: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    /* El header no lleva la clase, así que la variable no le llega por
+       herencia: se declara aquí. Sin esto el `::before` pinta
+       `background-image` sin valor — sin grano, sin error y sin nada que lo
+       delate. */
+    --noise-glass3d: var(--noise-papel);
+  }
 
-    /* El `position: relative` del CSS de origen se cae aquí: lo sustituye el
-       `absolute` de arriba, que también sirve de referencia a los dos
-       pseudoelementos. Dejar los dos hacía ganar al segundo y la barra no
-       flotaba — compilaba igual de verde. */
+  :is(.glass3d, body:has([data-hero-completo]) header) {
     box-shadow:
       0 0 0.75px hsl(205 20% 10% / 0.2),
       0.7px 0.8px 1.2px -0.4px hsl(205 20% 10% / 0.1),
@@ -249,7 +290,7 @@
       8px 9px 14px -2.5px hsl(205 20% 10% / 0.2);
   }
 
-  body:has([data-hero-completo]) header::before {
+  :is(.glass3d, body:has([data-hero-completo]) header)::before {
     content: "";
     position: absolute;
     inset: 0;
@@ -269,7 +310,7 @@
   /* El bisel: cinco sombras internas muy cortas que fingen el canto del
      vidrio atrapando la luz. Va por encima del desenfoque (z 5) y por debajo
      del contenido (z 6). */
-  body:has([data-hero-completo]) header::after {
+  :is(.glass3d, body:has([data-hero-completo]) header)::after {
     content: "";
     position: absolute;
     inset: 0;
@@ -286,7 +327,7 @@
       inset 0 0 0.25px 0.5px hsl(205 20% 90% / 0.03);
   }
 
-  body:has([data-hero-completo]) header > * {
+  :is(.glass3d, body:has([data-hero-completo]) header) > * {
     position: relative;
     z-index: 6;
   }
