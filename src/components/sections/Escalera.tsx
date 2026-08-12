@@ -1,3 +1,5 @@
+import type { CSSProperties } from "react";
+
 import { ButtonLink } from "@/components/ui/Button";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { home } from "@/content/home";
@@ -26,24 +28,31 @@ import { servicios } from "@/content/servicios";
  * leía era Ecosistema, porque su fondo negro sí tiene cuerpo, y por eso las
  * otras tres parecían huecos de carga en vez de peldaños.
  *
- * `--cream-2` es el token de «superficie elevada» y este es exactamente su
- * trabajo. La regla capilar se conserva encima: el lenguaje editorial del
- * blueprint (reglas capilares en vez de bordes de caja) sigue ahí, pero ahora
- * delimita una superficie en lugar de flotar sobre el lienzo.
+ * Esa superficie ya NO es un `bg-cream-2` opaco. La pinta el `::before` del
+ * vidrio con `--color-glass3d`, un `--cream-2` al 62%, y el último peldaño un
+ * `--black` al 86%. El cambio no es estético: el `::before` es la capa que
+ * lleva el `backdrop-filter`, así que un relleno opaco en el elemento tapaba
+ * el desenfoque y del vidrio solo quedaba la sombra — las cuatro tarjetas
+ * parecían cartón recortado. La regla capilar se conserva encima, y el
+ * lenguaje editorial del blueprint sigue ahí.
  *
- * ⚠️ Y OBLIGA A VIGILAR EL CONTRASTE. `--gray` sobre `--cream-2` da 4.65:1
- * contra los 5.1:1 que da sobre `--cream`: sigue pasando AA, pero con menos
- * margen. Es la misma frontera donde `--coral-ink` ya reprueba (4.13:1), así
- * que en estas tarjetas el acento no toca letra y la jerarquía se hace con
- * tamaño y peso.
+ * Y por eso la sección tiene fondo propio (`.malla-escalera`, tres gradientes
+ * radiales estáticos en `globals.css`): sin variedad detrás, `backdrop-filter`
+ * no tiene nada que mezclar y el vidrio no existe.
  *
- * El 4.65 sale de los colores computados de los dos elementos, NO de muestrear
- * los píxeles pintados: no incluye el grano de papel. El grano solo aclara
- * (ver `ui/Grano.tsx`), así que sobre fondo claro solo puede subir esa cifra —
- * pero si algún día el grano vuelve a oscurecer, este número se cae y hay que
- * remedirlo con muestreo real.
+ * ⚠️ Y OBLIGA A VIGILAR EL CONTRASTE, ahora más que antes: el texto se apoya
+ * en una superficie translúcida sobre un gradiente, así que el número no se
+ * puede calcular de dos colores computados — hay que muestrear los píxeles
+ * pintados. Medido a 375px, peor píxel bajo cada párrafo:
  *
- * EN MÓVIL SE APILAN
+ *   Siembra 4.59 · Cosecha 4.70 · Selva 4.63   (--gray, mínimo 4.5)
+ *   Ecosistema 10.21                           (--cream-2)
+ *
+ * Márgenes de centésimas. Subir la intensidad de `.malla-escalera` los rompe,
+ * y Siembra es donde se rompe primero. `--coral-ink` aquí no toca letra ni de
+ * lejos: la jerarquía se hace con tamaño y peso.
+ *
+ * EN MÓVIL SE APILAN, Y AHORA LITERALMENTE
  *
  * Iban en carrusel horizontal con la siguiente asomando, para poder comparar
  * alturas en el dispositivo por donde entra la mayoría del tráfico. No
@@ -51,9 +60,19 @@ import { servicios } from "@/content/servicios";
  * comparar** — el argumento entero del efecto desaparecía igual, y encima la
  * tarjeta cortada del borde derecho se leía como un error de maquetación.
  *
- * Apiladas y sin altura mínima, cada peldaño se lee completo y el vacío se
- * acaba. La escalera es un efecto de escritorio: donde caben las cuatro juntas
- * y la comparación es posible.
+ * Hoy, por debajo de `md`, cada peldaño es `position: sticky` y se clava 14px
+ * más abajo que el anterior: el siguiente le pasa por encima y va quedando una
+ * pila con los títulos asomando. Es el efecto de ScrollStack sin ScrollStack —
+ * cero dependencias, cero JavaScript, cero rAF. La librería original monta
+ * Lenis, que secuestra el scroll de toda la página, no trae guarda de
+ * `prefers-reduced-motion` y anima `filter: blur` por fotograma; nada de eso
+ * cabe en un sitio cuyo hero ya dejó Lighthouse en 47. Lo que sí se pierde es
+ * el escalado y el desenfoque progresivo de las tarjetas de abajo: eso sí
+ * necesita trabajo por fotograma.
+ *
+ * `sticky` no es animación, así que no hay nada que apagar con
+ * `prefers-reduced-motion`. Desde `md` se desactiva: ahí caben las cuatro
+ * juntas y la silueta de alturas ya es el gráfico.
  *
  * EL SUELO
  *
@@ -93,92 +112,118 @@ export function Escalera() {
   const { eyebrow, titulo, entrada, enlace } = home.escalera;
 
   return (
-    <section
-      aria-labelledby="escalera-titulo"
-      className="mx-auto w-full max-w-[1160px] px-6 py-[clamp(80px,10vw,140px)]"
-    >
-      <div className="grid gap-x-16 gap-y-6 lg:grid-cols-[55fr_45fr] lg:items-end">
-        <div>
-          <Eyebrow className="text-gray">{eyebrow}</Eyebrow>
-          <h2
-            id="escalera-titulo"
-            className="mt-5 text-[clamp(32px,5.5vw,64px)]"
-          >
-            {titulo}
-          </h2>
+    // El envoltorio existe solo para que el fondo sea a sangre. La sección va
+    // acotada a 1160px, así que una capa `absolute inset-0` dentro de ella se
+    // cortaría en el canalón; y estirarla con `w-screen` mete 100vw en una
+    // página con barra de scroll, que es desborde horizontal garantizado
+    // (regla 17). Un div envolvente de ancho natural no tiene ese problema.
+    <div className="relative">
+      {/* Lo que las tarjetas desenfocan. Sin esto el vidrio es solo sombra. */}
+      <div
+        aria-hidden="true"
+        className="malla-escalera absolute inset-0 -z-20"
+      />
+
+      <section
+        aria-labelledby="escalera-titulo"
+        className="mx-auto w-full max-w-[1160px] px-6 py-[clamp(80px,10vw,140px)]"
+      >
+        <div className="grid gap-x-16 gap-y-6 lg:grid-cols-[55fr_45fr] lg:items-end">
+          <div>
+            <Eyebrow className="text-gray">{eyebrow}</Eyebrow>
+            <h2
+              id="escalera-titulo"
+              className="mt-5 text-[clamp(32px,5.5vw,64px)]"
+            >
+              {titulo}
+            </h2>
+          </div>
+          <p className="max-w-[46ch] text-gray lg:pb-2">{entrada}</p>
         </div>
-        <p className="max-w-[46ch] text-gray lg:pb-2">{entrada}</p>
-      </div>
 
-      <ul className="mt-10 grid gap-4 md:mt-14 md:grid-cols-4 md:items-end md:gap-6">
-        {servicios.map((servicio, i) => {
-          // Ecosistema, el último peldaño. Invierte a negro porque es el salto
-          // de escala de la escalera, no un color más — y eso cambia el color
-          // de todo lo que lleva dentro.
-          const esUltimo = i === servicios.length - 1;
+        <ul className="mt-10 grid gap-4 md:mt-14 md:grid-cols-4 md:items-end md:gap-6">
+          {servicios.map((servicio, i) => {
+            // Ecosistema, el último peldaño. Invierte a negro porque es el salto
+            // de escala de la escalera, no un color más — y eso cambia el color
+            // de todo lo que lleva dentro.
+            const esUltimo = i === servicios.length - 1;
 
-          return (
-            <li key={servicio.id} className={`flex ${alturas[i]}`}>
-              <div
-                // `md:justify-end` cuelga el contenido de la base: el aire de
-                // arriba es lo que hace visible el peldaño. En móvil no aplica
-                // — sin altura mínima no hay aire que repartir, y el contenido
-                // se lee de arriba abajo como cualquier tarjeta.
-                // `glass3d`: sombra proyectada + bisel interior. El relleno
-                // opaco se QUEDA — `bg-cream-2` y `bg-black` son lo que hace
-                // legible la silueta de la escalera, y quitarlo para que el
-                // desenfoque tuviera algo que hacer devolvería el problema que
-                // documenta el bloque de arriba (tarjetas que se leían como
-                // huecos de carga). Detrás de esta sección solo hay crema
-                // plano: el desenfoque no tiene variedad que mezclar y lo que
-                // se ve del vidrio es el relieve, no lo esmerilado.
-                className={`glass3d flex w-full flex-col md:justify-end ${
-                  esUltimo
-                    ? // `glass3d-invertido` apaga el grano del vidrio. El grano
-                      // solo aclara, y sobre esta tarjeta negra subía tanto la
-                      // luminancia del fondo que --cream-2 caía de 15.2:1 a
-                      // 2.90:1. Es la misma trampa de `ui/Grano.tsx` con el
-                      // signo cambiado: allí el problema era oscurecer el
-                      // crema, aquí es aclarar el negro.
-                      "glass3d-invertido bg-black p-8 text-cream-2 sm:p-10"
-                    : "border-t border-black/15 bg-cream-2 p-6 sm:p-8"
-                }`}
+            return (
+              <li
+                key={servicio.id}
+                // La pila por scroll, en la vista de una sola columna. Es
+                // `position: sticky` y nada más: cada peldaño se clava un poco
+                // más abajo que el anterior y el siguiente le pasa por encima.
+                // El índice viaja como variable para que el escalonado no
+                // dependa de un `nth-child` que habría que tocar si algún día
+                // hay un quinto peldaño.
+                //
+                // Desde `md` se apaga: ahí las cuatro están una al lado de la
+                // otra y la silueta de alturas ya es el gráfico.
+                style={{ "--i": i } as CSSProperties}
+                className={`flex max-md:sticky max-md:top-[calc(72px+var(--i)*14px)] ${alturas[i]}`}
               >
-                <h3 className="text-[clamp(24px,3vw,34px)]">
-                  {servicio.nombre}
-                </h3>
-                <p
-                  className={`mt-3 text-sm ${
-                    esUltimo ? "text-cream-2" : "text-gray"
+                <div
+                  // `md:justify-end` cuelga el contenido de la base: el aire de
+                  // arriba es lo que hace visible el peldaño. En móvil no aplica
+                  // — sin altura mínima no hay aire que repartir, y el contenido
+                  // se lee de arriba abajo como cualquier tarjeta.
+                  // ⚠️ SIN `bg-*`. El relleno lo pinta el `::before` del vidrio
+                  // con `--color-glass3d`, que es la misma capa que lleva el
+                  // `backdrop-filter`: así el tinte se mezcla con el fondo ya
+                  // desenfocado. Con `bg-cream-2` opaco —como estaba— el relleno
+                  // tapaba el desenfoque, del efecto solo quedaba la sombra, y
+                  // las cuatro tarjetas parecían cartón recortado.
+                  //
+                  // La superficie que el bloque de arriba declara imprescindible
+                  // sigue ahí: el tinte del vidrio es opaco al 62% y la silueta
+                  // de la escalera se lee igual. Lo que cambió es quién lo pinta.
+                  // El radio es lo que el CSS del vidrio daba por hecho: sus
+                  // dos pseudoelementos llevan `border-radius: inherit`, así
+                  // que sin radio en la pieza el bisel dibuja una caja de
+                  // cantos vivos y el efecto se lee como papel recortado.
+                  className={`glass3d flex w-full flex-col rounded-[28px] md:justify-end ${
+                    esUltimo
+                      ? "glass3d-invertido p-8 text-cream-2 sm:p-10"
+                      : "glass3d-crema border-t border-black/15 p-6 sm:p-8"
                   }`}
                 >
-                  {servicio.promesa}
-                </p>
-                {/* En la tarjeta invertida el rango va en --cream-2 (15.2:1) y
+                  <h3 className="text-[clamp(24px,3vw,34px)]">
+                    {servicio.nombre}
+                  </h3>
+                  <p
+                    className={`mt-3 text-sm ${
+                      esUltimo ? "text-cream-2" : "text-gray"
+                    }`}
+                  >
+                    {servicio.promesa}
+                  </p>
+                  {/* En la tarjeta invertida el rango va en --cream-2 (15.2:1) y
                     no en --coral-ink, que sobre negro da 3.7:1 y reprueba AA. */}
-                <p
-                  className={`mt-5 text-sm font-medium ${
-                    esUltimo ? "text-cream-2" : "text-black"
-                  }`}
-                >
-                  {servicio.rango}
-                </p>
-              </div>
-            </li>
-          );
-        })}
-      </ul>
+                  <p
+                    className={`mt-5 text-sm font-medium ${
+                      esUltimo ? "text-cream-2" : "text-black"
+                    }`}
+                  >
+                    {servicio.rango}
+                  </p>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
 
-      {/* El suelo. Pegado a la base de las cuatro tarjetas y con `-mx-6` para
+        {/* El suelo. Pegado a la base de las cuatro tarjetas y con `-mx-6` para
           que llegue hasta el canalón, que es donde empiezan y acaban todas las
           reglas horizontales de la página. */}
-      <div aria-hidden="true" className="-mx-6 h-px bg-coral" />
+        <div aria-hidden="true" className="-mx-6 h-px bg-coral" />
 
-      <div className="mt-10">
-        <ButtonLink nivel="terciario" href={enlace.href}>
-          {enlace.label}
-        </ButtonLink>
-      </div>
-    </section>
+        <div className="mt-10">
+          <ButtonLink nivel="terciario" href={enlace.href}>
+            {enlace.label}
+          </ButtonLink>
+        </div>
+      </section>
+    </div>
   );
 }
