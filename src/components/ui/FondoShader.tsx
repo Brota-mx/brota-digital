@@ -9,14 +9,24 @@ import { useSyncExternalStore } from "react";
  * ⚠️ ES LA ÚNICA DEPENDENCIA PESADA DEL SITIO Y ESTÁ ARRIBA DEL PLIEGUE.
  * Decisión tomada con estos números medidos sobre la mesa (11-ago):
  *
- *   Lighthouse móvil, rendimiento   100 → 84   (TBT 4 ms → 643 ms)
+ *   Lighthouse móvil, rendimiento   95-96 → 47
+ *   TBT                             3 944 ms
+ *   LCP                             5 481 ms
  *   JS transferido                  +273 KB gzip (1 106 KB crudo)
  *   fps con GPU real, 1×            60   (hilo principal 3%)
  *   fps con CPU 4×                  36   (hilo principal 94%)
  *
- * El 84 queda por DEBAJO del «94 Lighthouse móvil, como mínimo» que la home
- * publica en `content/casos.ts`. Antes de publicar hay que resolver esa
- * contradicción: o sube el número, o cambia la métrica del caso.
+ * Accesibilidad, buenas prácticas y SEO siguen en 100.
+ *
+ * ⚠️ El 47 es de la HOME real. Una página de pruebas con solo el hero daba 84,
+ * y ese número no vale para nada aquí: el costo del shader se suma al resto de
+ * la página, no lo sustituye. Medir el efecto aislado subestima lo que cuesta
+ * donde de verdad vive.
+ *
+ * El 47 queda muy por DEBAJO del «94 Lighthouse móvil, como mínimo» que la
+ * home publica en `content/casos.ts` como métrica verificable de un caso.
+ * Antes de publicar hay que resolver esa contradicción: o sube el número, o
+ * cambia la métrica.
  *
  * Abajo del pliegue el arranque no se movía (100, TBT 34 ms). Si algún día
  * hay que recuperar el número, mover esto es la palanca.
