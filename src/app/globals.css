@@ -258,6 +258,38 @@
     --noise-glass3d: none;
   }
 
+  /* ── El fondo del hero, sin WebGL ────────────────────────────────────────
+     Va SIEMPRE bajo el canvas del shader, no como respaldo de emergencia:
+
+     - Es lo que se ve desde el primer fotograma. El shader ahora espera a que
+       el hilo principal esté libre (ver `ui/FondoShader.tsx`), y sin esto el
+       hero pasaría un segundo largo en crema plano.
+     - Lo pinta el servidor. Cero JavaScript, cero hidratación.
+     - Es lo que queda si WebGL falla, si el chunk no llega, o si el navegador
+       no tiene GPU. Antes ese caso era crema plano y el vidrio del header no
+       tenía nada que desenfocar.
+
+     Mismos tokens que los uniforms del shader, en el mismo reparto: coral
+     arriba a la izquierda, oro abajo a la derecha, crema elevado al centro. */
+  .malla-hero {
+    background-image:
+      radial-gradient(
+        70% 60% at 15% 12%,
+        color-mix(in oklab, var(--coral) 30%, transparent),
+        transparent 68%
+      ),
+      radial-gradient(
+        65% 65% at 88% 78%,
+        color-mix(in oklab, var(--gold) 55%, transparent),
+        transparent 70%
+      ),
+      radial-gradient(
+        80% 70% at 45% 50%,
+        color-mix(in oklab, var(--cream-2) 80%, transparent),
+        transparent 72%
+      );
+  }
+
   /* ── El fondo que hace posible el vidrio de la escalera ──────────────────
      Sin variedad detrás, `backdrop-filter` no tiene nada que mezclar y las
      tarjetas se leen como cartón recortado. Esto es lo que desenfocan.
