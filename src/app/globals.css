@@ -192,6 +192,105 @@
 }
 
 @layer components {
+  /* ── Barra de vidrio (solo la home) ─────────────────────────────────────
+     Vidrio esmerilado sobre el gradiente del hero: desenfoque + tinte frío +
+     grano, con dos anillos de brillo interior que le dan el bisel.
+
+     ⚠️ SOLO SIRVE SI HAY ALGO DETRÁS. `backdrop-filter` desenfoca lo que ya
+     está pintado debajo; sobre el crema plano de las otras siete rutas no
+     desenfocaría nada y quedaría una barra gris sin motivo. Por eso el header
+     flota sobre el hero SOLO en la home (`body:has(...)` más abajo).
+
+     El ruido va como `data:` URI y no como PNG de un tercero: la CSP del sitio
+     es `img-src 'self' data:`, así que una textura remota —la de
+     transparenttextures.com del CSS original— queda bloqueada y no se pinta.
+     Es el mismo `feTurbulence` que `ui/Grano.tsx`, con la misma matriz que
+     solo aclara.
+
+     ⚠️ SIN CLASE `.glass3d` GENÉRICA, A PROPÓSITO. El CSS de origen la definía
+     como clase reutilizable y aquí tiene UN solo consumidor: el header de la
+     home. Una clase que nadie más puede llevar —porque el efecto depende de
+     que haya gradiente detrás— es una abstracción sin segundo caso. Es la
+     misma razón por la que `ui/Card.tsx` ya no existe. El día que una segunda
+     superficie necesite vidrio, se extrae ESE día, sabiendo qué comparten.
+
+     El gancho es `:has()`: la home marca su hero con `data-hero-completo` y
+     desde aquí se estiliza el header, que vive en el layout y no sabe en qué
+     ruta está. Cero JavaScript y cero prop atravesando tres componentes. */
+  header {
+    border-bottom: 1px solid color-mix(in oklab, var(--black) 10%, transparent);
+  }
+
+  body:has([data-hero-completo]) header {
+    /* Absoluto y no `sticky`: la barra pertenece al hero, se va con él al
+       hacer scroll. Se posiciona contra el bloque contenedor inicial, que
+       empieza en el origen del documento — justo donde arranca el gradiente. */
+    position: absolute;
+    inset-inline: 0;
+    top: 0;
+    z-index: 50;
+    /* El canto del vidrio ya lo dibuja el bisel del `::after`. */
+    border-bottom: 0;
+    --filter-glass3d: blur(32px) brightness(0.85) saturate(2.5);
+    --color-glass3d: hsl(189 80% 10% / 0.2);
+    --noise-glass3d: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+
+    /* El `position: relative` del CSS de origen se cae aquí: lo sustituye el
+       `absolute` de arriba, que también sirve de referencia a los dos
+       pseudoelementos. Dejar los dos hacía ganar al segundo y la barra no
+       flotaba — compilaba igual de verde. */
+    box-shadow:
+      0 0 0.75px hsl(205 20% 10% / 0.2),
+      0.7px 0.8px 1.2px -0.4px hsl(205 20% 10% / 0.1),
+      1.3px 1.5px 2.2px -0.8px hsl(205 20% 10% / 0.1),
+      2.3px 2.6px 3.9px -1.2px hsl(205 20% 10% / 0.1),
+      3.9px 4.4px 6.6px -1.7px hsl(205 20% 10% / 0.1),
+      6.5px 7.2px 10.9px -2.1px hsl(205 20% 10% / 0.1),
+      8px 9px 14px -2.5px hsl(205 20% 10% / 0.2);
+  }
+
+  body:has([data-hero-completo]) header::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: inherit;
+    overflow: hidden;
+    z-index: 3;
+
+    -webkit-backdrop-filter: var(--filter-glass3d);
+    backdrop-filter: var(--filter-glass3d);
+    background-color: var(--color-glass3d);
+    background-image: var(--noise-glass3d);
+    background-size: 100px;
+    background-repeat: repeat;
+  }
+
+  /* El bisel: cinco sombras internas muy cortas que fingen el canto del
+     vidrio atrapando la luz. Va por encima del desenfoque (z 5) y por debajo
+     del contenido (z 6). */
+  body:has([data-hero-completo]) header::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: inherit;
+    overflow: hidden;
+    z-index: 5;
+
+    box-shadow:
+      inset 2px 2px 1px -3px hsl(205 20% 90% / 0.8),
+      inset 4px 4px 2px -6px hsl(205 20% 90% / 0.3),
+      inset 1.5px 1.5px 1.5px -0.75px hsl(205 20% 90% / 0.15),
+      inset 1.5px 1.5px 0.25px hsl(205 20% 90% / 0.03),
+      inset 0 0 0.25px 0.5px hsl(205 20% 90% / 0.03);
+  }
+
+  body:has([data-hero-completo]) header > * {
+    position: relative;
+    z-index: 6;
+  }
+
   /* ── Hero: una sola entrada, de un solo disparo (blueprint §4, efecto #2) ──
      Aquí había una cuarta pieza, `.hero-brote`, y con ella el `.tallo-trazo`
      del efecto #1. Se borraron el 11-ago: en escritorio los dos trazos se veían
