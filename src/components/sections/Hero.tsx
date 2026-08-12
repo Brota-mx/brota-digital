@@ -52,11 +52,17 @@ export function Hero() {
     // encoge su barra, y en un hero por el que se pasa una vez eso no se ve.
     //
     // El header flota encima, así que la sección ocupa la pantalla completa
-    // incluyendo la barra. En escritorio se suelta: un hero de alto fijo ahí
-    // empuja la escalera fuera de vista sin ganar nada.
+    // incluyendo la barra.
+    //
+    // Y en TODOS los tamaños. Aquí hubo un `lg:min-h-0` que soltaba la altura
+    // en escritorio, razonando que un hero de pantalla completa empuja la
+    // escalera fuera de vista. Se quitó a petición: el gradiente es lo primero
+    // que se ve del sitio y a media pantalla no se lee como fondo, se lee como
+    // una franja. Lo que cuesta es que la escalera ya no asoma en el primer
+    // golpe de vista en escritorio; el precio está aceptado.
     <section
       data-hero-completo
-      className="relative flex min-h-[100dvh] items-center lg:min-h-0"
+      className="relative flex min-h-[100dvh] items-center"
     >
       <FondoShader />
 
